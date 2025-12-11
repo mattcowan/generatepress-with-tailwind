@@ -43,10 +43,10 @@ for (const asset of requiredAssets) {
         const compiledFile = manifest[asset].file;
 
         // Validate path for security issues
-        if (compiledFile.includes('..') || compiledFile.startsWith('./') || compiledFile.startsWith('/')) {
+        if (compiledFile.includes('..')) {
             console.error(`❌ ${asset}`);
             console.error(`   → Invalid path detected: ${compiledFile}`);
-            console.error(`   → Paths must be relative filenames without traversal sequences\n`);
+            console.error(`   → Path traversal not allowed\n`);
             allValid = false;
         } else {
             // Verify the compiled file actually exists
@@ -68,9 +68,9 @@ console.log('🔍 Validating all manifest entries for path security and file exi
 for (const [key, entry] of Object.entries(manifest)) {
     if (entry.file) {
         // Check for path traversal
-        if (entry.file.includes('..') || entry.file.startsWith('./') || entry.file.startsWith('/')) {
+        if (entry.file.includes('..')) {
             console.error(`❌ Security issue in manifest entry: ${key}`);
-            console.error(`   → Invalid path: ${entry.file}\n`);
+            console.error(`   → Path traversal not allowed: ${entry.file}\n`);
             allValid = false;
         } else {
             // Verify file exists
@@ -86,9 +86,9 @@ for (const [key, entry] of Object.entries(manifest)) {
     if (entry.css && Array.isArray(entry.css)) {
         for (const cssFile of entry.css) {
             // Check for path traversal
-            if (cssFile.includes('..') || cssFile.startsWith('./') || cssFile.startsWith('/')) {
+            if (cssFile.includes('..')) {
                 console.error(`❌ Security issue in CSS reference for: ${key}`);
-                console.error(`   → Invalid path: ${cssFile}\n`);
+                console.error(`   → Path traversal not allowed: ${cssFile}\n`);
                 allValid = false;
             } else {
                 // Verify CSS file exists

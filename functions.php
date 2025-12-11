@@ -7,18 +7,24 @@
  */
 
 /**
- * Dequeue the default style.css (we use Vite-compiled CSS instead).
+ * Filter out the child theme's style.css from being loaded.
  *
- * Removes the default child theme stylesheet since we're using Vite-compiled
- * CSS loaded via the manifest system.
+ * We use Vite-compiled CSS instead of the default child theme stylesheet.
  *
  * @since 0.1
- * @return void
+ * @param string $html   The link tag for the enqueued style.
+ * @param string $handle The style's registered handle.
+ * @param string $href   The stylesheet's source URL.
+ * @param string $media  The stylesheet's media attribute.
+ * @return string Empty string for child theme stylesheet, original tag otherwise.
  */
-function generatepress_child_dequeue_default_style() {
-    wp_dequeue_style('generatepress-child');
+function generatepress_child_filter_style_tag( $html, $handle, $href, $media ) {
+    if ( 'generate-child' === $handle ) {
+        return '';
+    }
+    return $html;
 }
-add_action('wp_enqueue_scripts', 'generatepress_child_dequeue_default_style', 15);
+add_filter( 'style_loader_tag', 'generatepress_child_filter_style_tag', 10, 4 );
 
 /**
  * Get Vite manifest with caching and security validation.
@@ -172,11 +178,12 @@ function generatepress_child_enqueue_assets() {
 
         $js_file = $manifest['src/js/main.js']['file'];
 
-        // Validate filename (only alphanumeric, dash, underscore, dot, and .js extension)
-        if (preg_match('/^[a-zA-Z0-9._-]+\.js$/', basename($js_file))) {
+        // Validate path doesn't traverse and filename matches Vite format (name.hash.js)
+        if (!str_contains($js_file, '..') &&
+            preg_match('/^[a-zA-Z0-9_-]+\.[a-f0-9]+\.js$/', basename($js_file))) {
             wp_enqueue_script(
                 'generatepress-child-main',
-                $dist_uri . sanitize_file_name($js_file),
+                $dist_uri . $js_file,
                 array(),
                 $theme_version,
                 true
@@ -195,11 +202,12 @@ function generatepress_child_enqueue_assets() {
 
         $css_file = $manifest['src/css/main.css']['file'];
 
-        // Validate filename (only alphanumeric, dash, underscore, dot, and .css extension)
-        if (preg_match('/^[a-zA-Z0-9._-]+\.css$/', basename($css_file))) {
+        // Validate path doesn't traverse and filename matches Vite format (name.hash.css)
+        if (!str_contains($css_file, '..') &&
+            preg_match('/^[a-zA-Z0-9_-]+\.[a-f0-9]+\.css$/', basename($css_file))) {
             wp_enqueue_style(
                 'generatepress-child-main',
-                $dist_uri . sanitize_file_name($css_file),
+                $dist_uri . $css_file,
                 array(),
                 $theme_version
             );
