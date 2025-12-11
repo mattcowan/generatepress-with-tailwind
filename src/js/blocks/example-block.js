@@ -6,6 +6,7 @@
  */
 
 export function initExampleBlock() {
+  console.log('Example Block Works!');
   const blocks = document.querySelectorAll('.wp-block-example-block');
 
   blocks.forEach((block) => {

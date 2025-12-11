@@ -22,7 +22,10 @@ import '../css/main.css';
 // Initialize on DOM Ready
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('GeneratePress Child Theme - JavaScript loaded');
+  // Only log in development mode to prevent information disclosure
+  if (import.meta.env.DEV) {
+    console.log('GeneratePress Child Theme - JavaScript loaded');
+  }
 
   // Initialize all blocks
   // example: initExampleBlock();

@@ -23,6 +23,12 @@ export default defineConfig({
     },
     // Minify for production
     minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,  // Remove console.* statements in production
+        drop_debugger: true, // Remove debugger statements
+      },
+    },
     // Source maps for debugging
     sourcemap: false,
   },

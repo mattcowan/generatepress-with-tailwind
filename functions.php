@@ -7,7 +7,13 @@
  */
 
 /**
- * Dequeue the default style.css (we use Vite-compiled CSS instead)
+ * Dequeue the default style.css (we use Vite-compiled CSS instead).
+ *
+ * Removes the default child theme stylesheet since we're using Vite-compiled
+ * CSS loaded via the manifest system.
+ *
+ * @since 0.1
+ * @return void
  */
 function generatepress_child_dequeue_default_style() {
     wp_dequeue_style('generatepress-child');
@@ -15,67 +21,189 @@ function generatepress_child_dequeue_default_style() {
 add_action('wp_enqueue_scripts', 'generatepress_child_dequeue_default_style', 15);
 
 /**
- * Get Vite manifest with caching
+ * Get Vite manifest with caching and security validation.
+ *
+ * Reads and caches the Vite manifest.json file with path traversal protection
+ * and manifest structure validation.
+ *
+ * @since 0.1
+ * @return array|false Manifest array on success, false on failure.
  */
 function generatepress_child_get_manifest() {
-    $manifest_path = get_stylesheet_directory() . '/dist/.vite/manifest.json';
+    static $manifest_cache = null;
 
-    // Use manifest file modification time as cache key for auto-invalidation
-    if (file_exists($manifest_path)) {
-        $cache_key = 'vite_manifest_' . filemtime($manifest_path);
-    } else {
-        $cache_key = 'vite_manifest_missing';
+    // Use static variable to cache within the same request
+    if (null !== $manifest_cache) {
+        return $manifest_cache;
     }
+
+    $theme_dir = get_stylesheet_directory();
+    $manifest_path = $theme_dir . '/dist/.vite/manifest.json';
+
+    // Validate the manifest path is within theme directory (path traversal protection)
+    $real_manifest_path = realpath($manifest_path);
+    $real_theme_dir = realpath($theme_dir);
+
+    if (false === $real_manifest_path ||
+        false === $real_theme_dir ||
+        0 !== strpos($real_manifest_path, $real_theme_dir)) {
+        error_log('GeneratePress Child: Vite manifest path validation failed - potential path traversal attempt.');
+        $manifest_cache = false;
+        return false;
+    }
+
+    // Check file exists and is readable
+    if (!is_readable($real_manifest_path)) {
+        // Use theme-specific cache key to prevent collisions in multisite
+        $cache_key = 'gp_child_vite_manifest_' . md5($theme_dir) . '_missing';
+
+        // Try to get cached 'missing' state
+        $cached_missing = get_transient($cache_key);
+
+        if (false === $cached_missing) {
+            error_log('GeneratePress Child: Vite manifest not found or not readable.');
+            set_transient($cache_key, true, HOUR_IN_SECONDS);
+        }
+
+        $manifest_cache = false;
+        return false;
+    }
+
+    // Use theme-specific cache key with file modification time
+    $cache_key = 'gp_child_vite_manifest_' . md5($theme_dir) . '_' . filemtime($real_manifest_path);
 
     // Try to get cached manifest
     $manifest = get_transient($cache_key);
 
     if (false === $manifest) {
         // Cache miss - read and decode manifest
-        if (file_exists($manifest_path)) {
-            $manifest = json_decode(file_get_contents($manifest_path), true);
-            if ($manifest) {
-                // Cache for 1 hour (manifest rarely changes in production)
-                set_transient($cache_key, $manifest, HOUR_IN_SECONDS);
+        $manifest_content = file_get_contents($real_manifest_path);
+
+        if (false === $manifest_content) {
+            error_log('GeneratePress Child: Failed to read Vite manifest file.');
+            $manifest_cache = false;
+            return false;
+        }
+
+        $manifest = json_decode($manifest_content, true);
+
+        // Validate manifest is a non-empty array
+        if (!is_array($manifest) || empty($manifest)) {
+            error_log('GeneratePress Child: Vite manifest is not a valid JSON array.');
+            $manifest_cache = false;
+            return false;
+        }
+
+        // Validate manifest entries don't contain path traversal sequences
+        foreach ($manifest as $key => $entry) {
+            if (!is_array($entry)) {
+                error_log('GeneratePress Child: Invalid manifest entry structure.');
+                $manifest_cache = false;
+                return false;
+            }
+
+            if (isset($entry['file'])) {
+                $file = $entry['file'];
+
+                // Check for path traversal attempts
+                if (strpos($file, '..') !== false || strpos($file, './') === 0 || strpos($file, '/') === 0) {
+                    error_log('GeneratePress Child: Manifest contains potentially unsafe file path: ' . esc_html($file));
+                    $manifest_cache = false;
+                    return false;
+                }
             }
         }
+
+        // Use longer cache in production
+        $cache_duration = (defined('WP_DEBUG') && WP_DEBUG) ? HOUR_IN_SECONDS : DAY_IN_SECONDS;
+        set_transient($cache_key, $manifest, $cache_duration);
     }
+
+    // Cache in static variable for this request
+    $manifest_cache = $manifest;
 
     return $manifest;
 }
 
 /**
- * Enqueue compiled Vite assets (CSS and JS)
+ * Enqueue compiled Vite assets (CSS and JS) with security validation.
+ *
+ * Loads the compiled JavaScript and CSS files from the Vite manifest with
+ * filename validation to prevent path traversal.
+ *
+ * @since 0.1
+ * @return void
  */
 function generatepress_child_enqueue_assets() {
     $manifest = generatepress_child_get_manifest();
 
-    if (!$manifest) {
-        error_log('Vite manifest not found. Run "npm run build" or "npm run dev" in the theme directory.');
+    if (!$manifest || !is_array($manifest)) {
+        // Use different error messages based on WP_DEBUG setting
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $error_message = 'Vite manifest not found. Run "npm run build" in the theme directory.';
+        } else {
+            $error_message = 'Theme assets are missing. Please contact your site administrator.';
+        }
+
+        error_log('GeneratePress Child: ' . $error_message);
+
+        // Show admin notice for easier debugging
+        if (is_admin() && current_user_can('manage_options')) {
+            add_action('admin_notices', function() use ($error_message) {
+                printf(
+                    '<div class="notice notice-error"><p><strong>Theme Error:</strong> %s</p></div>',
+                    esc_html($error_message)
+                );
+            });
+        }
+
         return;
     }
 
-    // Enqueue the main JavaScript file
-    if (isset($manifest['src/js/main.js'])) {
+    // Get theme version for cache busting
+    $theme_version = wp_get_theme()->get('Version');
+    $dist_uri = get_stylesheet_directory_uri() . '/dist/';
+
+    // Enqueue the main JavaScript file with validation
+    if (isset($manifest['src/js/main.js']['file']) &&
+        is_string($manifest['src/js/main.js']['file'])) {
+
         $js_file = $manifest['src/js/main.js']['file'];
-        wp_enqueue_script(
-            'generatepress-child-main',
-            get_stylesheet_directory_uri() . '/dist/' . $js_file,
-            array(),
-            null,
-            true
-        );
+
+        // Validate filename (only alphanumeric, dash, underscore, dot, and .js extension)
+        if (preg_match('/^[a-zA-Z0-9._-]+\.js$/', basename($js_file))) {
+            wp_enqueue_script(
+                'generatepress-child-main',
+                $dist_uri . sanitize_file_name($js_file),
+                array(),
+                $theme_version,
+                true
+            );
+
+            // Add defer attribute for better performance
+            wp_script_add_data('generatepress-child-main', 'defer', true);
+        } else {
+            error_log('GeneratePress Child: Invalid JavaScript filename in Vite manifest: ' . esc_html($js_file));
+        }
     }
 
-    // Enqueue the main CSS file
-    if (isset($manifest['src/css/main.css'])) {
+    // Enqueue the main CSS file with validation
+    if (isset($manifest['src/css/main.css']['file']) &&
+        is_string($manifest['src/css/main.css']['file'])) {
+
         $css_file = $manifest['src/css/main.css']['file'];
-        wp_enqueue_style(
-            'generatepress-child-main',
-            get_stylesheet_directory_uri() . '/dist/' . $css_file,
-            array(),
-            null
-        );
+
+        // Validate filename (only alphanumeric, dash, underscore, dot, and .css extension)
+        if (preg_match('/^[a-zA-Z0-9._-]+\.css$/', basename($css_file))) {
+            wp_enqueue_style(
+                'generatepress-child-main',
+                $dist_uri . sanitize_file_name($css_file),
+                array(),
+                $theme_version
+            );
+        } else {
+            error_log('GeneratePress Child: Invalid CSS filename in Vite manifest: ' . esc_html($css_file));
+        }
     }
 }
 add_action('wp_enqueue_scripts', 'generatepress_child_enqueue_assets', 20);
