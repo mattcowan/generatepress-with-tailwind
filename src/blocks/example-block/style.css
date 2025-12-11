@@ -1,0 +1,30 @@
+/**
+ * Example Block Styles
+ *
+ * This file contains styles specific to the example block.
+ * You can use Tailwind's theme() function or write custom CSS.
+ */
+
+.wp-block-example-block {
+  padding: theme(spacing.8);
+  background-color: theme(colors.gray.50);
+  border-radius: theme(borderRadius.lg);
+  border: 1px solid theme(colors.gray.200);
+
+  &__title {
+    font-size: theme(fontSize.2xl);
+    font-weight: theme(fontWeight.bold);
+    color: theme(colors.gray.900);
+    margin-bottom: theme(spacing.4);
+  }
+
+  &__content {
+    color: theme(colors.gray.700);
+    line-height: theme(lineHeight.relaxed);
+  }
+
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    padding: theme(spacing.4);
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "generatepress-child-tailwind",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite build tooling, and custom block support",
+  "author": "Your Name",
+  "license": "GPL-2.0-or-later",
+  "keywords": [
+    "wordpress",
+    "theme",
+    "generatepress",
+    "tailwindcss",
+    "vite",
+    "gutenberg",
+    "blocks"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/generatepress-child-tailwind.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/generatepress-child-tailwind/issues"
+  },
+  "homepage": "https://github.com/yourusername/generatepress-child-tailwind#readme",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@vitejs/plugin-legacy": "^7.2.1",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "sass": "^1.96.0",
+    "tailwindcss": "^4.1.17",
+    "vite": "^7.2.7"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
