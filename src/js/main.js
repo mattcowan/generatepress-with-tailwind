@@ -12,10 +12,10 @@ import '../css/main.css';
 // Block Scripts
 // ========================================
 // Import block-specific JavaScript modules here
-// example: import { initExampleBlock } from '../blocks/example-block/script.js';
+// example: import { initExampleBlock } from './blocks/example-block.js';
 
 /* To add more blocks, follow this pattern:
- * import { initYourBlock } from '../blocks/your-block-name/script.js';
+ * import { initYourBlock } from './blocks/your-block-name.js';
  */
 
 // ========================================

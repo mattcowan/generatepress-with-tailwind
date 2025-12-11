@@ -25,6 +25,8 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
+    "verify": "node verify-build.js",
+    "build:verify": "npm run build && npm run verify",
     "preview": "vite preview"
   },
   "devDependencies": {

@@ -5,11 +5,10 @@
    Block Styles
    ======================================== */
 /* Import block-specific styles here */
-/* example: @import "../blocks/example-block/style.css"; */
-@import "../blocks/example-block/style.css";
+@import "./blocks/example-block.css";
 
 /* To add more blocks, follow this pattern:
- * @import "../blocks/your-block-name/style.css";
+ * @import "./blocks/your-block-name.css";
 */
 
 /* ========================================
