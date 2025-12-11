@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite build tooling, and custom block support",
-  "author": "Your Name",
+  "author": "matthewneilcowan",
   "license": "GPL-2.0-or-later",
   "keywords": [
     "wordpress",

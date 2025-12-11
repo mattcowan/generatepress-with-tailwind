@@ -94,7 +94,7 @@ function generatepress_child_get_manifest() {
             return false;
         }
 
-        // Validate manifest entries don't contain path traversal sequences
+        // Lightweight runtime check for path traversal (detailed validation in verify-build.js)
         foreach ($manifest as $key => $entry) {
             if (!is_array($entry)) {
                 error_log('GeneratePress Child: Invalid manifest entry structure.');
@@ -105,9 +105,9 @@ function generatepress_child_get_manifest() {
             if (isset($entry['file'])) {
                 $file = $entry['file'];
 
-                // Check for path traversal attempts
-                if (strpos($file, '..') !== false || strpos($file, './') === 0 || strpos($file, '/') === 0) {
-                    error_log('GeneratePress Child: Manifest contains potentially unsafe file path: ' . esc_html($file));
+                // Check for directory traversal attacks (build script validates other cases)
+                if (strpos($file, '..') !== false) {
+                    error_log('GeneratePress Child: Manifest contains path traversal sequence: ' . esc_html($file));
                     $manifest_cache = false;
                     return false;
                 }

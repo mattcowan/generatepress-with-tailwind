@@ -33,7 +33,7 @@ try {
     process.exit(1);
 }
 
-// Check required assets
+// Check required assets and validate paths
 let allValid = true;
 for (const asset of requiredAssets) {
     if (!manifest[asset]) {
@@ -41,8 +41,39 @@ for (const asset of requiredAssets) {
         allValid = false;
     } else {
         const compiledFile = manifest[asset].file;
-        console.log(`✅ ${asset}`);
-        console.log(`   → ${compiledFile}\n`);
+
+        // Validate path for security issues
+        if (compiledFile.includes('..') || compiledFile.startsWith('./') || compiledFile.startsWith('/')) {
+            console.error(`❌ ${asset}`);
+            console.error(`   → Invalid path detected: ${compiledFile}`);
+            console.error(`   → Paths must be relative filenames without traversal sequences\n`);
+            allValid = false;
+        } else {
+            console.log(`✅ ${asset}`);
+            console.log(`   → ${compiledFile}\n`);
+        }
+    }
+}
+
+// Validate all CSS entries in manifest
+console.log('🔍 Validating all manifest entries for path security...\n');
+for (const [key, entry] of Object.entries(manifest)) {
+    if (entry.file) {
+        if (entry.file.includes('..') || entry.file.startsWith('./') || entry.file.startsWith('/')) {
+            console.error(`❌ Security issue in manifest entry: ${key}`);
+            console.error(`   → Invalid path: ${entry.file}\n`);
+            allValid = false;
+        }
+    }
+    // Check CSS files referenced in entries
+    if (entry.css && Array.isArray(entry.css)) {
+        for (const cssFile of entry.css) {
+            if (cssFile.includes('..') || cssFile.startsWith('./') || cssFile.startsWith('/')) {
+                console.error(`❌ Security issue in CSS reference for: ${key}`);
+                console.error(`   → Invalid path: ${cssFile}\n`);
+                allValid = false;
+            }
+        }
     }
 }
 
