@@ -49,29 +49,55 @@ for (const asset of requiredAssets) {
             console.error(`   → Paths must be relative filenames without traversal sequences\n`);
             allValid = false;
         } else {
-            console.log(`✅ ${asset}`);
-            console.log(`   → ${compiledFile}\n`);
+            // Verify the compiled file actually exists
+            const compiledFilePath = join(__dirname, 'dist', compiledFile);
+            if (!existsSync(compiledFilePath)) {
+                console.error(`❌ ${asset}`);
+                console.error(`   → Compiled file missing: ${compiledFilePath}\n`);
+                allValid = false;
+            } else {
+                console.log(`✅ ${asset}`);
+                console.log(`   → ${compiledFile}\n`);
+            }
         }
     }
 }
 
-// Validate all CSS entries in manifest
-console.log('🔍 Validating all manifest entries for path security...\n');
+// Validate all manifest entries for path security and file existence
+console.log('🔍 Validating all manifest entries for path security and file existence...\n');
 for (const [key, entry] of Object.entries(manifest)) {
     if (entry.file) {
+        // Check for path traversal
         if (entry.file.includes('..') || entry.file.startsWith('./') || entry.file.startsWith('/')) {
             console.error(`❌ Security issue in manifest entry: ${key}`);
             console.error(`   → Invalid path: ${entry.file}\n`);
             allValid = false;
+        } else {
+            // Verify file exists
+            const filePath = join(__dirname, 'dist', entry.file);
+            if (!existsSync(filePath)) {
+                console.error(`❌ Missing file for manifest entry: ${key}`);
+                console.error(`   → File not found: ${filePath}\n`);
+                allValid = false;
+            }
         }
     }
     // Check CSS files referenced in entries
     if (entry.css && Array.isArray(entry.css)) {
         for (const cssFile of entry.css) {
+            // Check for path traversal
             if (cssFile.includes('..') || cssFile.startsWith('./') || cssFile.startsWith('/')) {
                 console.error(`❌ Security issue in CSS reference for: ${key}`);
                 console.error(`   → Invalid path: ${cssFile}\n`);
                 allValid = false;
+            } else {
+                // Verify CSS file exists
+                const cssFilePath = join(__dirname, 'dist', cssFile);
+                if (!existsSync(cssFilePath)) {
+                    console.error(`❌ Missing CSS file referenced in: ${key}`);
+                    console.error(`   → File not found: ${cssFilePath}\n`);
+                    allValid = false;
+                }
             }
         }
     }
