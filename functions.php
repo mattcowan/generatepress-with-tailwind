@@ -7,12 +7,17 @@
  */
 
 /**
+ * Dequeue the default style.css (we use Vite-compiled CSS instead)
+ */
+function generatepress_child_dequeue_default_style() {
+    wp_dequeue_style('generatepress-child');
+}
+add_action('wp_enqueue_scripts', 'generatepress_child_dequeue_default_style', 15);
+
+/**
  * Enqueue compiled Vite assets (CSS and JS)
  */
 function generatepress_child_enqueue_assets() {
-    $theme_version = wp_get_theme()->get('Version');
-
-    // Get the manifest file to find the compiled asset names with hashes
     $manifest_path = get_stylesheet_directory() . '/dist/.vite/manifest.json';
 
     if (file_exists($manifest_path)) {
@@ -28,9 +33,9 @@ function generatepress_child_enqueue_assets() {
             wp_enqueue_script(
                 'generatepress-child-main',
                 get_stylesheet_directory_uri() . '/dist/' . $js_file,
-                array(), // dependencies
-                null, // version is in filename hash
-                true // load in footer
+                array(),
+                null,
+                true
             );
         }
 
@@ -40,14 +45,12 @@ function generatepress_child_enqueue_assets() {
             wp_enqueue_style(
                 'generatepress-child-main',
                 get_stylesheet_directory_uri() . '/dist/' . $css_file,
-                array(), // dependencies
-                null // version is in filename hash
+                array(),
+                null
             );
         }
     } else {
-        // Fallback for development - load non-hashed files if manifest doesn't exist
-        // Note: Run 'npm run build' to generate the manifest
-        error_log('Vite manifest not found. Please run "npm run build" in the theme directory.');
+        error_log('Vite manifest not found. Run "npm run build" or "npm run dev" in the theme directory.');
     }
 }
 add_action('wp_enqueue_scripts', 'generatepress_child_enqueue_assets', 20);

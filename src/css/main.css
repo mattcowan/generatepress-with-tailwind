@@ -6,10 +6,11 @@
    ======================================== */
 /* Import block-specific styles here */
 /* example: @import "../blocks/example-block/style.css"; */
+@import "../blocks/example-block/style.css";
 
 /* To add more blocks, follow this pattern:
  * @import "../blocks/your-block-name/style.css";
- */
+*/
 
 /* ========================================
    Custom Component Classes

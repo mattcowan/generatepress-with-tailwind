@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/yourusername/generatepress-child-tailwind#readme",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite build --watch",
     "build": "vite build",
     "preview": "vite preview"
   },
