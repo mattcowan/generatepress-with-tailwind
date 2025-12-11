@@ -5,11 +5,7 @@
    Block Styles
    ======================================== */
 /* Import block-specific styles here */
-/* @import "./blocks/example-block.css"; */  /* Removed - example block not in use */
-
-/* To add more blocks, follow this pattern:
- * @import "./blocks/your-block-name.css";
-*/
+/* Example: @import "./blocks/your-block-name.css"; */
 
 /* ========================================
    Custom Component Classes

@@ -8,7 +8,7 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
 - 🎨 **Tailwind CSS v4** - Modern utility-first CSS framework with JIT mode
 - 📦 **Zero Extra HTTP Requests** - All styles and scripts bundled into single files
 - 🧩 **Block-Ready Structure** - Organized directory structure for custom Gutenberg blocks
-- 🔥 **Hot Module Replacement** - Instant updates during development
+- 🔥 **Automatic Rebuilds on Save** - Fast file watching and rebuilds during development
 - 🎯 **Minimal Bundle Size** - ~5KB CSS + ~0.5KB JS (gzipped)
 - 💅 **SCSS-Style Nesting** - Modern CSS nesting support
 - 🚀 **Cache-Busted Assets** - Automatic hash-based versioning
@@ -48,21 +48,22 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server with hot reload |
+| `npm run watch` | Watch and rebuild assets on change |
 | `npm run build` | Build optimized production assets |
 | `npm run preview` | Preview production build locally |
 
 ### Development Workflow
 
-1. **Start development server:**
+1. **Start watch mode:**
    ```bash
-   npm run dev
+   npm run watch
    ```
 
 2. **Make changes** to your code in the `src/` directory:
    - `src/css/main.css` - Main stylesheet with Tailwind imports
+   - `src/css/blocks/` - Block-specific styles
    - `src/js/main.js` - Main JavaScript entry point
-   - `src/blocks/` - Block-specific styles and scripts
+   - `src/js/blocks/` - Block-specific scripts
 
 3. **Build for production** when ready:
    ```bash
@@ -80,14 +81,14 @@ generatepress_child/
 │       └── manifest.json     # Asset manifest for WordPress
 │
 ├── src/                      # Source files
-│   ├── blocks/              # Custom Gutenberg blocks
-│   │   └── example-block/
-│   │       ├── style.css    # Block-specific styles
-│   │       └── script.js    # Block-specific JavaScript
 │   ├── css/
-│   │   └── main.css         # Main stylesheet (Tailwind + custom)
+│   │   ├── main.css         # Main stylesheet (Tailwind + custom)
+│   │   └── blocks/          # Block-specific styles
+│   │       └── example-block.css
 │   └── js/
-│       └── main.js          # Main JavaScript entry point
+│       ├── main.js          # Main JavaScript entry point
+│       └── blocks/          # Block-specific scripts
+│           └── example-block.js
 │
 ├── functions.php             # Theme functions (enqueues assets)
 ├── style.css                 # Theme header (required by WordPress)
@@ -153,15 +154,9 @@ export default {
 
 ## Creating Custom Blocks
 
-### 1. Create Block Directory
+### 1. Create Block Files
 
-```bash
-mkdir -p src/blocks/my-custom-block
-```
-
-### 2. Create Block Files
-
-**src/blocks/my-custom-block/style.css:**
+**src/css/blocks/my-custom-block.css:**
 ```css
 .wp-block-my-custom-block {
   padding: theme(spacing.6);
@@ -174,35 +169,41 @@ mkdir -p src/blocks/my-custom-block
 }
 ```
 
-**src/blocks/my-custom-block/script.js:**
+**src/js/blocks/my-custom-block.js:**
 ```js
 export function initMyCustomBlock() {
+  if (import.meta.env.DEV) {
+    console.log('My Custom Block initialized');
+  }
+
   const blocks = document.querySelectorAll('.wp-block-my-custom-block');
 
   blocks.forEach((block) => {
     // Your block initialization code
-    console.log('Block initialized:', block);
+    if (import.meta.env.DEV) {
+      console.log('Block initialized:', block);
+    }
   });
 }
 ```
 
-### 3. Import Block Assets
+### 2. Import Block Assets
 
 **In src/css/main.css:**
 ```css
-@import "../blocks/my-custom-block/style.css";
+@import "./blocks/my-custom-block.css";
 ```
 
 **In src/js/main.js:**
 ```js
-import { initMyCustomBlock } from '../blocks/my-custom-block/script.js';
+import { initMyCustomBlock } from './blocks/my-custom-block.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initMyCustomBlock();
 });
 ```
 
-### 4. Rebuild Assets
+### 3. Rebuild Assets
 
 ```bash
 npm run build
@@ -306,14 +307,14 @@ npm install
 3. Rebuild assets: `npm run build`
 4. Check that `dist/` directory has new files
 
-### Development Server Not Working
+### Watch Mode Not Working
 
 ```bash
 # Kill any existing Vite processes
 pkill -f vite
 
-# Restart dev server
-npm run dev
+# Restart watch mode
+npm run watch
 ```
 
 ## Contributing

@@ -114,8 +114,10 @@ function generatepress_child_get_manifest() {
             }
         }
 
-        // Use longer cache in production
-        $cache_duration = (defined('WP_DEBUG') && WP_DEBUG) ? HOUR_IN_SECONDS : DAY_IN_SECONDS;
+        // Use longer cache in production; shorter in development or if debugging
+        $is_debug = (defined('WP_DEBUG') && WP_DEBUG);
+        $is_not_production = (defined('WP_ENVIRONMENT_TYPE') && WP_ENVIRONMENT_TYPE !== 'production');
+        $cache_duration = ($is_debug || $is_not_production) ? HOUR_IN_SECONDS : DAY_IN_SECONDS;
         set_transient($cache_key, $manifest, $cache_duration);
     }
 

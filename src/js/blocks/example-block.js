@@ -6,13 +6,17 @@
  */
 
 export function initExampleBlock() {
-  console.log('Example Block Works!');
+  if (import.meta.env.DEV) {
+    console.log('Example Block Works!');
+  }
   const blocks = document.querySelectorAll('.wp-block-example-block');
 
   blocks.forEach((block) => {
     // Example: Add click handler
     block.addEventListener('click', (e) => {
-      console.log('Example block clicked', e.target);
+      if (import.meta.env.DEV) {
+        console.log('Example block clicked', e.target);
+      }
     });
 
     // Example: Initialize any interactive features
@@ -22,5 +26,7 @@ export function initExampleBlock() {
     }
   });
 
-  console.log(`Initialized ${blocks.length} example blocks`);
+  if (import.meta.env.DEV) {
+    console.log(`Initialized ${blocks.length} example blocks`);
+  }
 }
