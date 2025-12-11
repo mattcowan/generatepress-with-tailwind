@@ -98,7 +98,6 @@ generatepress_child/
 ├── postcss.config.js        # PostCSS configuration
 ├── package.json             # Node dependencies and scripts
 │
-├── CLAUDE.md                # AI assistant instructions
 ├── LICENSE                  # GNU GPL v2 license
 └── README.md                # This file
 ```
