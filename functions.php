@@ -181,16 +181,28 @@ function generatepress_child_enqueue_assets() {
         // Validate path doesn't traverse and filename matches Vite format (name.hash.js)
         if (!str_contains($js_file, '..') &&
             preg_match('/^[a-zA-Z0-9_-]+\.[a-f0-9]+\.js$/', basename($js_file))) {
-            wp_enqueue_script(
-                'generatepress-child-main',
-                $dist_uri . $js_file,
-                array(),
-                $theme_version,
-                array(
-                    'in_footer' => true,
-                    'strategy'  => 'defer',
-                )
-            );
+            // Use 'strategy' parameter if WP >= 6.3, otherwise use wp_script_add_data for defer
+            if ( version_compare( get_bloginfo( 'version' ), '6.3', '>=' ) ) {
+                wp_enqueue_script(
+                    'generatepress-child-main',
+                    $dist_uri . $js_file,
+                    array(),
+                    $theme_version,
+                    array(
+                        'in_footer' => true,
+                        'strategy'  => 'defer',
+                    )
+                );
+            } else {
+                wp_enqueue_script(
+                    'generatepress-child-main',
+                    $dist_uri . $js_file,
+                    array(),
+                    $theme_version,
+                    true // in_footer
+                );
+                wp_script_add_data( 'generatepress-child-main', 'defer', true );
+            }
         } else {
             error_log('GeneratePress Child: Invalid JavaScript filename in Vite manifest: ' . esc_html($js_file));
         }
