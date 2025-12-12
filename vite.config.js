@@ -21,13 +21,10 @@ export default defineConfig({
         assetFileNames: '[name].[hash].[ext]',
       },
     },
-    // Minify for production
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,  // Remove console.* statements in production
-        drop_debugger: true, // Remove debugger statements
-      },
+    // Minify for production using esbuild (default, faster than terser)
+    minify: 'esbuild',
+    esbuildOptions: {
+      drop: ['console', 'debugger'], // Remove console.* and debugger statements in production
     },
     // Source maps for debugging
     sourcemap: false,

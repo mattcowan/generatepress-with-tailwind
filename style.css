@@ -11,5 +11,5 @@
 /*
  * This file contains only the theme header.
  * All styles are compiled from src/css/main.css using Vite + Tailwind CSS.
- * Run 'npm run dev' for development or 'npm run build' for production.
+ * Run 'npm run watch' for development or 'npm run build' for production.
  */

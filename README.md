@@ -4,12 +4,11 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
 
 ## Features
 
-- ⚡ **Vite Build System** - Lightning-fast development and optimized production builds
+- ⚡ **Vite Build System** - Fast development builds and optimized production output
 - 🎨 **Tailwind CSS v4** - Modern utility-first CSS framework with JIT mode
-- 📦 **Zero Extra HTTP Requests** - All styles and scripts bundled into single files
+- 📦 **Single File Bundles** - All styles and scripts bundled into single CSS and JS files
 - 🧩 **Block-Ready Structure** - Organized directory structure for custom Gutenberg blocks
-- 🔥 **Automatic Rebuilds on Save** - Fast file watching and rebuilds during development
-- 🎯 **Minimal Bundle Size** - ~5KB CSS + ~0.5KB JS (gzipped)
+- 🔥 **Automatic Rebuilds** - File watching with automatic rebuilds during development
 - 💅 **SCSS-Style Nesting** - Modern CSS nesting support
 - 🚀 **Cache-Busted Assets** - Automatic hash-based versioning
 
@@ -19,7 +18,7 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
 - **GeneratePress Theme**: Must be installed as parent theme
 - **Node.js**: 18.x or higher
 - **npm**: 9.x or higher
-- **PHP**: 7.4 or higher
+- **PHP**: 8.0 or higher
 
 ## Installation
 
@@ -50,6 +49,8 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
 |---------|-------------|
 | `npm run watch` | Watch and rebuild assets on change |
 | `npm run build` | Build optimized production assets |
+| `npm run verify` | Verify build output and manifest |
+| `npm run build:verify` | Build and verify in one step |
 | `npm run preview` | Preview production build locally |
 
 ### Development Workflow
@@ -239,7 +240,7 @@ WordPress uses this manifest to enqueue the correct files automatically.
 
 - ✅ Tailwind JIT mode (only used utilities included)
 - ✅ CSS minification with Lightning CSS
-- ✅ JavaScript minification with Terser
+- ✅ JavaScript minification with esbuild
 - ✅ Tree-shaking removes unused code
 - ✅ Hash-based cache busting
 - ✅ Single CSS + single JS file (no extra requests)

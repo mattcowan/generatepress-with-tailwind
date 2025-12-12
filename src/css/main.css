@@ -10,7 +10,7 @@
 /* ========================================
    Custom Component Classes
    ======================================== */
-/* In Tailwind v4, @apply works differently - use standard CSS or theme() function */
+/* In Tailwind v4, @apply has been removed - use standard CSS with theme() function */
 .btn-primary {
   background-color: theme(colors.blue.500);
   color: theme(colors.white);
