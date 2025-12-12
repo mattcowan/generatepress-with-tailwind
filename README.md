@@ -19,6 +19,7 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
 - **Node.js**: 18.x or higher
 - **npm**: 9.x or higher
 - **PHP**: 8.0 or higher
+  > **Note:** PHP 8.0+ is required due to the use of modern language features such as `str_contains()` in the theme code. If you are running WordPress on PHP 7.4, you will need to update your PHP version or refactor the theme code to use PHP 7.4-compatible functions.
 
 ## Installation
 
