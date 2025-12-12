@@ -224,7 +224,7 @@ function generatepress_child_enqueue_assets() {
                 $theme_version
             );
         } else {
-            error_log('GeneratePress Child: Invalid CSS filename in Vite manifest: ' . esc_html($css_file));
+            error_log('GeneratePress Child: Invalid CSS filename in Vite manifest: ' . $css_file);
         }
     }
 }
