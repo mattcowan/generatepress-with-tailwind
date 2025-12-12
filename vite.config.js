@@ -1,7 +1,15 @@
 import { defineConfig } from 'vite';
 import path from 'path';
+import removeConsole from 'vite-plugin-remove-console';
 
 export default defineConfig({
+  plugins: [
+    // Runs in production builds only during transform phase (before esbuild minification)
+    // Selectively removes console.log/debug/trace while preserving console.error/warn
+    removeConsole({
+      includes: ['log', 'debug', 'trace'], // Remove console.log/debug/trace, keep error/warn
+    }),
+  ],
   build: {
     // Output to dist directory
     outDir: 'dist',
@@ -24,7 +32,7 @@ export default defineConfig({
     // Minify for production using esbuild (default, faster than terser)
     minify: 'esbuild',
     esbuildOptions: {
-      drop: ['console', 'debugger'], // Remove console.* and debugger statements in production
+      drop: ['debugger'], // Remove debugger statements only (console handled by plugin)
     },
     // Source maps for debugging
     sourcemap: false,
