@@ -186,11 +186,11 @@ function generatepress_child_enqueue_assets() {
                 $dist_uri . $js_file,
                 array(),
                 $theme_version,
-                true
+                array(
+                    'in_footer' => true,
+                    'strategy'  => 'defer',
+                )
             );
-
-            // Add defer attribute for better performance
-            wp_script_add_data('generatepress-child-main', 'defer', true);
         } else {
             error_log('GeneratePress Child: Invalid JavaScript filename in Vite manifest: ' . esc_html($js_file));
         }
