@@ -180,7 +180,7 @@ function generatepress_child_enqueue_assets() {
 
         // Validate path doesn't traverse and filename matches Vite format (name.hash.js)
         if (!str_contains($js_file, '..') &&
-            preg_match('/^[a-zA-Z0-9_-]+\.[a-f0-9]+\.js$/', basename($js_file))) {
+            preg_match('/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.js$/', basename($js_file))) {
             // Use 'strategy' parameter if WP >= 6.3, otherwise use wp_script_add_data for defer
             if ( version_compare( get_bloginfo( 'version' ), '6.3', '>=' ) ) {
                 wp_enqueue_script(
@@ -216,7 +216,7 @@ function generatepress_child_enqueue_assets() {
 
         // Validate path doesn't traverse and filename matches Vite format (name.hash.css)
         if (!str_contains($css_file, '..') &&
-            preg_match('/^[a-zA-Z0-9_-]+\.[a-f0-9]+\.css$/', basename($css_file))) {
+            preg_match('/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.css$/', basename($css_file))) {
             wp_enqueue_style(
                 'generatepress-child-main',
                 $dist_uri . $css_file,
