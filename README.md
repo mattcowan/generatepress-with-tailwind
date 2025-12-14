@@ -48,7 +48,8 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
 
 | Command | Description |
 |---------|-------------|
-| `npm run watch` | Watch and rebuild assets on change |
+| `npm run dev` | Start Vite dev server with Hot Module Replacement (HMR) |
+| `npm run watch` | Watch and rebuild assets on change (without HMR) |
 | `npm run build` | Build optimized production assets |
 | `npm run verify` | Verify build output and manifest |
 | `npm run build:verify` | Build and verify in one step |
@@ -56,9 +57,13 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
 
 ### Development Workflow
 
-1. **Start watch mode:**
+#### Option 1: Hot Module Replacement (Recommended)
+
+Experience instant browser updates without page refreshes:
+
+1. **Start the dev server:**
    ```bash
-   npm run watch
+   npm run dev
    ```
 
 2. **Make changes** to your code in the `src/` directory:
@@ -67,10 +72,29 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
    - `src/js/main.js` - Main JavaScript entry point
    - `src/js/blocks/` - Block-specific scripts
 
-3. **Build for production** when ready:
+3. **See instant updates** - Changes appear immediately in your browser without refreshing
+
+4. **Build for production** when ready:
    ```bash
    npm run build
    ```
+
+**How it works:** When `npm run dev` is running, WordPress automatically detects the Vite dev server on port 3000 and loads assets from it. If the dev server isn't running, WordPress gracefully falls back to loading the built assets from the `dist/` folder.
+
+#### Option 2: Build Watch Mode
+
+Traditional build approach with automatic rebuilds:
+
+1. **Start watch mode:**
+   ```bash
+   npm run watch
+   ```
+
+2. **Make changes** to your code - Assets rebuild automatically
+
+3. **Refresh browser** to see changes (page refresh required)
+
+**When to use:** Use this mode if you experience port conflicts or prefer the traditional build workflow.
 
 ## Project Structure
 
@@ -289,6 +313,18 @@ add_action('init', 'my_custom_post_type');
 
 ## Troubleshooting
 
+### Hot Module Replacement Issues
+
+**Problem**: HMR not working / changes not appearing instantly
+
+**Solution**:
+1. Check if dev server is running: You should see "Vite dev server detected" in WordPress admin
+2. Check the dev server output for errors
+3. Verify port 3000 isn't blocked by firewall
+4. If port 3000 is busy, Vite will use the next available port - update `functions/dev-assets.php` to match
+
+**Fallback**: If HMR isn't working, the theme automatically falls back to using built assets from `dist/`. Use `npm run watch` instead for auto-rebuilding.
+
 ### Build Errors
 
 **Problem**: "Vite manifest not found"
@@ -304,20 +340,49 @@ npm install
 
 ### Styles Not Updating
 
-1. Clear WordPress cache
-2. Hard refresh browser (Ctrl+Shift+R / Cmd+Shift+R)
-3. Rebuild assets: `npm run build`
-4. Check that `dist/` directory has new files
+1. Check if using dev server (`npm run dev`) or built assets
+2. If using dev server: Changes should be instant
+3. If using built assets:
+   - Clear WordPress cache
+   - Hard refresh browser (Ctrl+Shift+R / Cmd+Shift+R)
+   - Rebuild assets: `npm run build`
+   - Check that `dist/` directory has new files
 
-### Watch Mode Not Working
+### Dev Server Not Starting
 
 ```bash
 # Kill any existing Vite processes
+# Windows:
+taskkill /F /IM node.exe
+
+# macOS/Linux:
 pkill -f vite
 
-# Restart watch mode
-npm run watch
+# Restart dev server
+npm run dev
 ```
+
+### Development Environment Detection
+
+The Vite dev server and HMR features are automatically enabled when **any** of these conditions are met:
+
+- `WP_DEBUG` is set to `true`, OR
+- `WP_LOCAL_DEV` constant is set to `true`, OR
+- `WP_ENVIRONMENT_TYPE` is set to anything except `'production'`, OR
+- Running on `localhost` / `127.0.0.1` / `::1`, OR
+- Running on local development TLDs (`.local`, `.test`, `.dev`, `.localhost`), OR
+- Running on private IP ranges (`192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`), OR
+- Hostname resolves to `127.0.0.1` (works with custom hosts file entries), OR
+- Custom filter `generatepress_child_is_dev_environment` returns `true`
+
+**Custom Hostnames:** If you use a custom hostname like `mysite.custom` in your hosts file pointing to localhost, it will be automatically detected as a dev environment.
+
+**Manual Override:** You can force dev mode by adding this to your theme's `functions.php` or a plugin:
+```php
+add_filter('generatepress_child_is_dev_environment', '__return_true');
+```
+
+**Production Protection:** In true production environments (public domains, production servers), the theme always uses built assets from `dist/`, ignoring the dev server even if it's running. This is automatic and requires no configuration.
 
 ## Contributing
 
