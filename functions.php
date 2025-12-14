@@ -63,8 +63,8 @@ function generatepress_child_is_dev_environment() {
     }
 
     // Check if running on localhost or local IP
-    $server_name = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
-    $http_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+    $server_name = isset($_SERVER['SERVER_NAME']) ? sanitize_text_field($_SERVER['SERVER_NAME']) : '';
+    $http_host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field($_SERVER['HTTP_HOST']) : '';
 
     // Strip port from HTTP_HOST if present (e.g., "wplayground:8080" -> "wplayground")
     $http_host_clean = preg_replace('/:\d+$/', '', $http_host);
