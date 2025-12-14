@@ -1,16 +1,40 @@
 # GeneratePress Child Theme with Tailwind CSS
 
-A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite build tooling, and support for custom Gutenberg blocks.
+A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite build tooling, Hot Module Replacement, and support for custom Gutenberg blocks.
+
+## Table of Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Development](#development)
+  - [Commands](#commands)
+  - [Development Workflow](#development-workflow)
+- [Project Structure](#project-structure)
+- [Using Tailwind CSS](#using-tailwind-css)
+- [Creating Custom Blocks](#creating-custom-blocks)
+- [Asset Management](#asset-management)
+- [Performance](#performance)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
+- [Contributing](#contributing)
+- [License](#license)
+- [Credits](#credits)
+- [Changelog](#changelog)
 
 ## Features
 
 - ⚡ **Vite Build System** - Fast development builds and optimized production output
+- 🔥 **Hot Module Replacement (HMR)** - Instant browser updates without page refresh during development
 - 🎨 **Tailwind CSS v4** - Modern utility-first CSS framework with JIT mode
 - 📦 **Single File Bundles** - All styles and scripts bundled into single CSS and JS files
 - 🧩 **Block-Ready Structure** - Organized directory structure for custom Gutenberg blocks
-- 🔥 **Automatic Rebuilds** - File watching with automatic rebuilds during development
+- 🔄 **Dual Development Modes** - Choose between HMR or traditional build watch mode
 - 💅 **SCSS-Style Nesting** - Modern CSS nesting support
 - 🚀 **Cache-Busted Assets** - Automatic hash-based versioning
+- 🛡️ **Smart Environment Detection** - Automatically enables dev mode on localhost environments
+- 🔒 **Production-Safe** - Dev features automatically disabled on production servers
 
 ## Requirements
 
@@ -22,6 +46,18 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
   > **Note:** PHP 8.0+ is required due to the use of modern language features such as `str_contains()` in the theme code. If you are running WordPress on PHP 7.4, you will need to update your PHP version or refactor the theme code to use PHP 7.4-compatible functions.
 
 ## Installation
+
+### Prerequisites
+
+Verify you have the required tools installed:
+
+```bash
+node --version  # Should be 18.x or higher
+npm --version   # Should be 9.x or higher
+php --version   # Should be 8.0 or higher
+```
+
+### Setup Steps
 
 1. **Clone or download** this repository into your WordPress themes directory:
    ```bash
@@ -41,6 +77,15 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
    ```
 
 4. **Activate the theme** in WordPress Admin → Appearance → Themes
+
+### Verify Installation
+
+After activation, check your site's page source. You should see references to the compiled assets:
+
+```html
+<link rel='stylesheet' href='.../dist/style.[hash].css' />
+<script src='.../dist/main.[hash].js'></script>
+```
 
 ## Development
 
@@ -106,24 +151,27 @@ generatepress_child/
 │   └── .vite/
 │       └── manifest.json     # Asset manifest for WordPress
 │
+├── functions/                # PHP function modules
+│   ├── prod-assets.php      # Production asset loading (manifest-based)
+│   └── dev-assets.php       # Development HMR and dev server detection
+│
 ├── src/                      # Source files
 │   ├── css/
 │   │   ├── main.css         # Main stylesheet (Tailwind + custom)
-│   │   └── blocks/          # Block-specific styles
-│   │       └── example-block.css
+│   │   └── blocks/          # Block-specific styles (add your blocks here)
 │   └── js/
 │       ├── main.js          # Main JavaScript entry point
-│       └── blocks/          # Block-specific scripts
-│           └── example-block.js
+│       └── blocks/          # Block-specific scripts (add your blocks here)
 │
-├── functions.php             # Theme functions (enqueues assets)
+├── functions.php             # Main theme functions (loads modules conditionally)
 ├── style.css                 # Theme header (required by WordPress)
 ├── screenshot.png            # Theme screenshot
 │
-├── vite.config.js           # Vite build configuration
+├── vite.config.js           # Vite build configuration with HMR support
 ├── tailwind.config.js       # Tailwind CSS configuration
 ├── postcss.config.js        # PostCSS configuration
 ├── package.json             # Node dependencies and scripts
+├── verify-build.js          # Build verification script
 │
 ├── LICENSE                  # GNU GPL v2 license
 └── README.md                # This file
@@ -239,10 +287,46 @@ npm run build
 
 ### How It Works
 
-1. **Development**: Vite watches your `src/` files and rebuilds on changes
-2. **Production**: `npm run build` creates optimized, hashed files in `dist/`
-3. **WordPress**: `functions.php` reads the Vite manifest and enqueues the correct files
-4. **Caching**: Hash-based filenames ensure browsers always get the latest version
+The theme uses a **dual-mode asset loading system** that automatically switches between development and production:
+
+#### Development Mode (with HMR)
+
+When running `npm run dev`:
+
+1. **Vite dev server** runs on `localhost:3000`
+2. **WordPress detects** the dev server automatically (via `functions/dev-assets.php`)
+3. **Assets load directly** from `http://localhost:3000/src/js/main.js`
+4. **HMR enabled** - Changes appear instantly without page refresh
+5. **Console logs preserved** - `import.meta.env.DEV` checks work correctly
+
+#### Production Mode (or when dev server is off)
+
+When dev server isn't running:
+
+1. **WordPress uses manifest** from `dist/.vite/manifest.json`
+2. **Assets load** from `dist/main.[hash].js` and `dist/style.[hash].css`
+3. **Console logs removed** - Build optimization active
+4. **Cache-busted** - Hash-based filenames prevent stale caches
+
+### Environment Detection
+
+The theme automatically detects your environment using these checks (in order):
+
+1. **WordPress Constants**
+   - `WP_DEBUG = true`
+   - `WP_LOCAL_DEV = true`
+   - `WP_ENVIRONMENT_TYPE != 'production'`
+
+2. **Hostname Checks**
+   - `localhost`, `127.0.0.1`, `::1`
+   - TLDs: `.local`, `.test`, `.dev`, `.localhost`
+   - Private IPs: `192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`
+   - **Hostname resolution**: Any hostname that resolves to `127.0.0.1`
+
+3. **Filter Hook**
+   - `generatepress_child_is_dev_environment` filter
+
+**Custom Hostnames**: If you use `wplayground`, `mysite.local`, or any custom hostname in your hosts file that points to localhost, it will be automatically detected.
 
 ### Manifest System
 
@@ -257,18 +341,21 @@ The `dist/.vite/manifest.json` file maps source files to their compiled versions
 }
 ```
 
-WordPress uses this manifest to enqueue the correct files automatically.
+WordPress uses this manifest in production mode to enqueue the correct hashed files.
 
 ## Performance
 
 ### Optimization Features
 
-- ✅ Tailwind JIT mode (only used utilities included)
-- ✅ CSS minification with Lightning CSS
-- ✅ JavaScript minification with esbuild
-- ✅ Tree-shaking removes unused code
-- ✅ Hash-based cache busting
-- ✅ Single CSS + single JS file (no extra requests)
+- ✅ **Tailwind JIT mode** - Only used utilities included in build
+- ✅ **CSS minification** - Lightning CSS for optimal compression
+- ✅ **JavaScript minification** - esbuild for fast, efficient minification
+- ✅ **Tree-shaking** - Removes unused code automatically
+- ✅ **Console removal** - `console.log/debug/trace` stripped in production (keeps error/warn)
+- ✅ **Hash-based cache busting** - Filenames change when content changes
+- ✅ **Single file bundles** - One CSS + one JS file (minimal HTTP requests)
+- ✅ **Smart loading** - Dev assets only loaded in development environments
+- ✅ **Transient caching** - Dev server detection cached for performance
 
 ## Browser Support
 
@@ -277,6 +364,52 @@ WordPress uses this manifest to enqueue the correct files automatically.
 - ES6+ JavaScript
 
 For older browser support, consider adding the `@vitejs/plugin-legacy` polyfills.
+
+## Deployment
+
+### Production Build
+
+Before deploying to production, build optimized assets:
+
+```bash
+npm run build:verify
+```
+
+This runs the build and verifies all assets are correctly generated.
+
+### Files to Deploy
+
+Upload these files/folders to your production server:
+
+**Required:**
+- `functions/` - PHP function modules
+- `dist/` - Compiled assets
+- `functions.php` - Main theme file
+- `style.css` - Theme header
+- `screenshot.png` - Theme preview image
+
+**Do NOT Upload:**
+- `node_modules/` - Development dependencies (large, unnecessary)
+- `src/` - Source files (only compiled dist/ needed)
+- `.git/` - Version control data
+- `package.json`, `package-lock.json` - Build configuration
+- `vite.config.js`, `tailwind.config.js`, `postcss.config.js` - Build tools
+- `verify-build.js` - Development script
+- `.gitignore` - Git configuration
+
+### Deployment Checklist
+
+1. ✅ Run `npm run build:verify` locally
+2. ✅ Test the built site locally with `npm run preview`
+3. ✅ Upload only production files (see list above)
+4. ✅ Verify `WP_DEBUG` is `false` on production
+5. ✅ Clear WordPress cache after deployment
+6. ✅ Test site functionality on production server
+7. ✅ Verify assets load correctly (check browser Network tab)
+
+### Environment Variables
+
+The theme automatically detects production environments and disables dev features. No configuration needed, but ensure your production server doesn't match dev detection criteria (localhost, .local domains, etc.).
 
 ## Customization
 
@@ -384,6 +517,70 @@ add_filter('generatepress_child_is_dev_environment', '__return_true');
 
 **Production Protection:** In true production environments (public domains, production servers), the theme always uses built assets from `dist/`, ignoring the dev server even if it's running. This is automatic and requires no configuration.
 
+## FAQ
+
+### General Questions
+
+**Q: Do I need to rebuild after every change?**
+A: No! Use `npm run dev` for Hot Module Replacement. Changes appear instantly in your browser without refreshing. Only use `npm run build` when you're ready to deploy.
+
+**Q: What's the difference between `npm run dev` and `npm run watch`?**
+A: `npm run dev` starts a dev server with Hot Module Replacement (instant updates). `npm run watch` builds files on change but requires page refresh. Use `dev` for the best experience.
+
+**Q: Can I use this theme with WP_DEBUG set to false?**
+A: Yes! The theme detects local development environments automatically (localhost, custom hosts file entries, private IPs). You don't need `WP_DEBUG = true` for HMR to work locally.
+
+**Q: Will the dev server work on my live site?**
+A: No. The dev features only activate on localhost/development environments. Your production site will always use the optimized built assets from `dist/`, even if someone runs the dev server.
+
+**Q: What if port 3000 is already in use?**
+A: Vite will automatically try the next available port (3001, 3002, etc). However, WordPress looks for port 3000 by default. Either free up port 3000 or update `functions/dev-assets.php` to match the port Vite chose.
+
+### Tailwind CSS Questions
+
+**Q: Can I use this with page builders like Elementor or Beaver Builder?**
+A: Yes, but you may need to add their template files to the `content` array in `tailwind.config.js` so Tailwind knows to include those classes.
+
+**Q: How do I add custom Tailwind colors/fonts?**
+A: Edit `tailwind.config.js` and add them to the `theme.extend` section. See [Tailwind Configuration](#configuration) above.
+
+**Q: What if I don't want Tailwind?**
+A: You can remove it by:
+1. Removing `@import 'tailwindcss'` from `src/css/main.css`
+2. Uninstalling `@tailwindcss/postcss` with `npm uninstall @tailwindcss/postcss`
+3. Removing Tailwind from `postcss.config.js`
+
+### Troubleshooting Questions
+
+**Q: I see "Vite manifest not found" error**
+A: Run `npm run build` to generate the manifest and compiled assets. This error means you activated the theme without building the assets first.
+
+**Q: My changes aren't appearing on the site**
+A: Check:
+1. Is `npm run dev` running? If yes, changes should be instant.
+2. Is WordPress loading from dev server? Check browser Network tab for `localhost:3000` requests.
+3. Try clearing WordPress cache and hard refreshing browser (Ctrl+Shift+R).
+
+**Q: Console logs appear in production**
+A: This shouldn't happen if you ran `npm run build`. The plugin removes `console.log/debug/trace` during builds. Verify you uploaded the `dist/` folder from a fresh build.
+
+**Q: The theme broke my site**
+A: The theme requires PHP 8.0+. Check your PHP version. If you have direct server access, you can disable the theme by renaming the theme folder via FTP/SSH.
+
+### Development Questions
+
+**Q: Can I use TypeScript?**
+A: Yes! Vite supports TypeScript out of the box. Just create `.ts` files instead of `.js` files and import them. You may want to add type definitions for WordPress.
+
+**Q: How do I add a custom block?**
+A: See [Creating Custom Blocks](#creating-custom-blocks) section above for step-by-step instructions.
+
+**Q: Can I use Sass/SCSS instead of CSS?**
+A: Vite supports Sass. Install it with `npm install -D sass` and rename your `.css` files to `.scss`. Update imports in `main.js` accordingly.
+
+**Q: How do I debug PHP errors?**
+A: Set `WP_DEBUG = true` and `WP_DEBUG_LOG = true` in `wp-config.php`. Errors will be logged to `wp-content/debug.log`. For the asset loading functions, check `functions/prod-assets.php` and `functions/dev-assets.php`.
+
 ## Contributing
 
 Contributions are welcome! Please follow these guidelines:
@@ -416,6 +613,18 @@ For issues and questions:
 - **Vite Docs**: https://vitejs.dev/
 
 ## Changelog
+
+### 1.1.0
+- ✨ Added Hot Module Replacement (HMR) support with `npm run dev`
+- ✨ Added intelligent dev environment detection (supports custom hostnames)
+- ✨ Added organized `/functions` directory structure
+- ✨ Separated production and development asset loading logic
+- ✨ Added dev server detection with automatic fallback
+- ✨ Console logs now preserved in dev mode, removed in production
+- 🔧 Fixed `vite-plugin-remove-console` to only run during builds
+- 🔧 Enhanced dev environment detection to resolve custom hostnames
+- 📝 Added comprehensive HMR documentation
+- 🛡️ Improved error handling (removed `@` error suppression)
 
 ### 1.0.0
 - Initial release
