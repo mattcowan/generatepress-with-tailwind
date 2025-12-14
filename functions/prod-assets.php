@@ -169,8 +169,9 @@ function generatepress_child_enqueue_assets() {
         // Validate path doesn't traverse and filename matches Vite format (name.hash.js)
         if (!str_contains($js_file, '..') &&
             preg_match('/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.js$/', basename($js_file))) {
-            // Use 'strategy' parameter if WP >= 6.3, otherwise use wp_script_add_data for defer
-            if ( version_compare( get_bloginfo( 'version' ), '6.3', '>=' ) ) {
+            // Use 'strategy' parameter if WP >= 6.3.0, otherwise use wp_script_add_data for defer
+            global $wp_version;
+            if ( version_compare( $wp_version, '6.3.0', '>=' ) ) {
                 wp_enqueue_script(
                     'generatepress-child-main',
                     $dist_uri . $js_file,
