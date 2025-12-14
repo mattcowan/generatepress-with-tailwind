@@ -156,8 +156,8 @@ function generatepress_child_dev_mode_notice() {
         return;
     }
 
-    echo '<div class="notice notice-info is-dismissible">';
-    echo '<p><strong>Development Mode:</strong> Vite dev server detected on port 3000. Hot Module Replacement (HMR) is active.</p>';
-    echo '</div>';
+    echo wp_kses_post(
+        '<div class="notice notice-info is-dismissible"><p><strong>Development Mode:</strong> Vite dev server detected on port 3000. Hot Module Replacement (HMR) is active.</p></div>'
+    );
 }
 add_action('admin_notices', 'generatepress_child_dev_mode_notice');
