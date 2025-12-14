@@ -451,7 +451,7 @@ add_action('init', 'my_custom_post_type');
 **Problem**: HMR not working / changes not appearing instantly
 
 **Solution**:
-1. Check if dev server is running: You should see "Vite dev server detected" in WordPress admin
+1. Check if dev server is running: You should see a notice "Vite dev server detected" in the WordPress admin area
 2. Check the dev server output for errors
 3. Verify port 3000 isn't blocked by firewall
 4. If port 3000 is busy, Vite will use the next available port - update `functions/dev-assets.php` to match
