@@ -67,7 +67,15 @@ function generatepress_child_is_dev_environment() {
     $http_host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field($_SERVER['HTTP_HOST']) : '';
 
     // Strip port from HTTP_HOST if present (e.g., "wplayground:8080" -> "wplayground")
-    $http_host_clean = preg_replace('/:\d+$/', '', $http_host);
+    // Only strip if not an IPv6 address (which is enclosed in square brackets, e.g., "[::1]:8080")
+    // Expected input: host[:port], where host is a domain, IPv4, or [IPv6]
+    if ($http_host && $http_host[0] === '[') {
+        // IPv6 address, possibly with port (e.g., "[::1]:8080")
+        $http_host_clean = preg_replace('/\]:\d+$/', ']', $http_host);
+    } else {
+        // IPv4 or domain, possibly with port (e.g., "localhost:8080")
+        $http_host_clean = preg_replace('/:\d+$/', '', $http_host);
+    }
 
     // Check for localhost variants
     if (in_array($server_name, ['localhost', '127.0.0.1', '::1'], true) ||
