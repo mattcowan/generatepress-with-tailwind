@@ -124,7 +124,9 @@ add_action('wp_enqueue_scripts', 'generatepress_child_enqueue_dev_assets', 10);
  */
 function generatepress_child_dev_script_type_module($tag, $handle) {
     if (in_array($handle, ['generatepress-child-vite-client', 'generatepress-child-main'], true)) {
-        $tag = str_replace(' src=', ' type="module" src=', $tag);
+        if (strpos($tag, 'type=') === false) {
+            $tag = str_replace(' src=', ' type="module" src=', $tag);
+        }
     }
     return $tag;
 }
