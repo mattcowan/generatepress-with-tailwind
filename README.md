@@ -454,7 +454,7 @@ add_action('init', 'my_custom_post_type');
 1. Check if dev server is running: You should see a notice "Vite dev server detected" in the WordPress admin area
 2. Check the dev server output for errors
 3. Verify port 3000 isn't blocked by firewall
-4. If port 3000 is busy, Vite will use the next available port - update `functions/dev-assets.php` to match
+4. If port 3000 is busy, Vite will use the next available port – update both `functions/dev-assets.php` and `vite.config.js` (see line 49) to match the port.
 
 **Fallback**: If HMR isn't working, the theme automatically falls back to using built assets from `dist/`. Use `npm run watch` instead for auto-rebuilding.
 
