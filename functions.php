@@ -127,8 +127,8 @@ function generatepress_child_is_dev_environment() {
     }
 
     // Check if hostname resolves to localhost (handles custom hosts file entries)
-    // gethostbyname() returns the hostname unchanged if resolution fails (safe fallback)
-    if ($server_name && $server_name !== '::1') {
+    // Note: gethostbyname() only supports IPv4, so skip IPv6 addresses (contain colons)
+    if ($server_name && !str_contains($server_name, ':')) {
         $resolved_ip = gp_child_cached_dns_lookup($server_name);
         // If resolution succeeded and points to localhost
         if ($resolved_ip !== $server_name && $resolved_ip === '127.0.0.1') {
@@ -136,7 +136,7 @@ function generatepress_child_is_dev_environment() {
         }
     }
 
-    if ($http_host_clean && $http_host_clean !== $server_name && $http_host_clean !== '::1') {
+    if ($http_host_clean && $http_host_clean !== $server_name && !str_contains($http_host_clean, ':')) {
         $resolved_ip = gp_child_cached_dns_lookup($http_host_clean);
         // If resolution succeeded and points to localhost
         if ($resolved_ip !== $http_host_clean && $resolved_ip === '127.0.0.1') {
@@ -152,3 +152,5 @@ function generatepress_child_is_dev_environment() {
 if (generatepress_child_is_dev_environment()) {
     require_once get_stylesheet_directory() . '/functions/dev-assets.php';
 }
+
+delete_transient('gp_child_vite_dev_server_running');

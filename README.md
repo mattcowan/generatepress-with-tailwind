@@ -97,7 +97,7 @@ The theme uses a centralized configuration file for the Vite dev server settings
 #### Default Settings
 
 By default, the theme looks for the Vite dev server at:
-- **Host**: `localhost`
+- **Host**: `127.0.0.1` (IPv4 for Windows compatibility)
 - **Port**: `3000` (with automatic fallback to ports 3001-3005)
 - **Protocol**: `http`
 
@@ -724,7 +724,7 @@ For issues and questions:
 - 🔧 Fixed `vite-plugin-remove-console` to only run during builds
 - 🔧 Enhanced dev environment detection to resolve custom hostnames
 - 📝 Added comprehensive HMR documentation
-- 🛡️ Improved error handling (removed `@` error suppression)
+- 🛡️ Improved error handling (replaced `@` error suppression with proper error handler)
 
 ### 1.0.0
 - Initial release

@@ -52,10 +52,10 @@ function generatepress_child_is_vite_dev_server_running() {
 
     // Try to connect to dev server on each port in range
     $active_port = false;
-    $prev_error_handler = set_error_handler(function () { /* ignore fsockopen warnings */ });
+    set_error_handler(function () { /* ignore fsockopen warnings */ });
 
     foreach ($port_range as $port) {
-        $connection = @fsockopen($host, $port, $errno, $errstr, 1);
+        $connection = fsockopen($host, $port, $errno, $errstr, 1);
 
         if ($connection) {
             fclose($connection);
@@ -64,11 +64,7 @@ function generatepress_child_is_vite_dev_server_running() {
         }
     }
 
-    if ($prev_error_handler !== null) {
-        set_error_handler($prev_error_handler);
-    } else {
-        restore_error_handler();
-    }
+    restore_error_handler();
 
     if ($active_port) {
         $result = $active_port;
@@ -183,7 +179,6 @@ function generatepress_child_dev_mode_notice() {
         return;
     }
 
-<<<<<<< HEAD
     // Get the full dev server URL for display
     $dev_server_url = function_exists('generatepress_child_get_vite_url')
         ? generatepress_child_get_vite_url($active_port)
@@ -192,10 +187,5 @@ function generatepress_child_dev_mode_notice() {
     echo '<div class="notice notice-info is-dismissible">';
     echo '<p><strong>Development Mode:</strong> Vite dev server detected at <code>' . esc_html($dev_server_url) . '</code>. Hot Module Replacement (HMR) is active.</p>';
     echo '</div>';
-=======
-    echo wp_kses_post(
-        '<div class="notice notice-info is-dismissible"><p><strong>Development Mode:</strong> Vite dev server detected on port 3000. Hot Module Replacement (HMR) is active.</p></div>'
-    );
->>>>>>> 4c250c3fb23b143460a01f1729c3eadd642e0ed1
 }
 add_action('admin_notices', 'generatepress_child_dev_mode_notice');

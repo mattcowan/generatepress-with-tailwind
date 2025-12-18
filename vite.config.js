@@ -45,7 +45,7 @@ export default defineConfig(({ command, mode }) => ({
   // Dev server settings for Hot Module Replacement (HMR)
   // Run with: npm run dev
   server: {
-    host: 'localhost',
+    host: '127.0.0.1', // Use IPv4 explicitly for better Windows compatibility
     port: 3000,
     strictPort: false, // If port 3000 is busy, try next available port.
     cors: true, // Enable CORS for WordPress integration

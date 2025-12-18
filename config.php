@@ -38,7 +38,7 @@ if (!defined('ABSPATH')) {
 
 // Dev server host
 if (!defined('VITE_DEV_SERVER_HOST')) {
-    define('VITE_DEV_SERVER_HOST', apply_filters('generatepress_child_vite_dev_host', 'localhost'));
+    define('VITE_DEV_SERVER_HOST', apply_filters('generatepress_child_vite_dev_host', '127.0.0.1'));
 }
 
 // Dev server port
