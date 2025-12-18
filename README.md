@@ -411,7 +411,7 @@ The theme automatically detects your environment using these checks (in order):
    - `localhost`, `127.0.0.1`, `::1`
    - TLDs: `.local`, `.test`, `.dev`, `.localhost`
    - Private IPs: `192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`
-   - **Hostname resolution**: Any hostname that resolves to `127.0.0.1`
+   - **Hostname resolution**: Any hostname that resolves to `127.0.0.1` (via IPv4 lookup using `gethostbyname()`). Note: Hostnames that only resolve to IPv6 (`::1`) or if resolution fails/timeouts may not be detected.
 
 3. **Filter Hook**
    - `generatepress_child_is_dev_environment` filter

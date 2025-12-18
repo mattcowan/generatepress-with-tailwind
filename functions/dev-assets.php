@@ -149,7 +149,9 @@ add_action('wp_enqueue_scripts', 'generatepress_child_enqueue_dev_assets', 10);
  */
 function generatepress_child_dev_script_type_module($tag, $handle) {
     if (in_array($handle, ['generatepress-child-vite-client', 'generatepress-child-main'], true)) {
-        $tag = str_replace(' src=', ' type="module" src=', $tag);
+        if (strpos($tag, 'type=') === false) {
+            $tag = str_replace(' src=', ' type="module" src=', $tag);
+        }
     }
     return $tag;
 }
@@ -181,6 +183,7 @@ function generatepress_child_dev_mode_notice() {
         return;
     }
 
+<<<<<<< HEAD
     // Get the full dev server URL for display
     $dev_server_url = function_exists('generatepress_child_get_vite_url')
         ? generatepress_child_get_vite_url($active_port)
@@ -189,5 +192,10 @@ function generatepress_child_dev_mode_notice() {
     echo '<div class="notice notice-info is-dismissible">';
     echo '<p><strong>Development Mode:</strong> Vite dev server detected at <code>' . esc_html($dev_server_url) . '</code>. Hot Module Replacement (HMR) is active.</p>';
     echo '</div>';
+=======
+    echo wp_kses_post(
+        '<div class="notice notice-info is-dismissible"><p><strong>Development Mode:</strong> Vite dev server detected on port 3000. Hot Module Replacement (HMR) is active.</p></div>'
+    );
+>>>>>>> 4c250c3fb23b143460a01f1729c3eadd642e0ed1
 }
 add_action('admin_notices', 'generatepress_child_dev_mode_notice');

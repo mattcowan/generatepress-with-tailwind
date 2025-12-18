@@ -47,7 +47,7 @@ export default defineConfig(({ command, mode }) => ({
   server: {
     host: 'localhost',
     port: 3000,
-    strictPort: false, // If port 3000 is busy, try next available port
+    strictPort: false, // If port 3000 is busy, try next available port.
     cors: true, // Enable CORS for WordPress integration
     origin: 'http://localhost:3000', // Explicit origin for HMR client
     hmr: {
