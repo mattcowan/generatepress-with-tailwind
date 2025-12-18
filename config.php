@@ -27,13 +27,16 @@ if (!defined('ABSPATH')) {
  * - Laravel Valet: localhost:3000
  * - Custom setup: Change host/port as needed
  *
- * You can override these via WordPress filters:
- * add_filter('generatepress_child_vite_dev_host', function() { return '127.0.0.1'; });
- * add_filter('generatepress_child_vite_dev_port', function() { return 3001; });
+ * CUSTOMIZATION OPTIONS:
  *
- * Or define constants in wp-config.php:
- * define('VITE_DEV_SERVER_HOST', 'localhost');
- * define('VITE_DEV_SERVER_PORT', 3001);
+ * Option 1: Use WordPress filters (the constants below apply these filters)
+ * Example usage in your functions.php or custom plugin:
+ *   add_filter('generatepress_child_vite_dev_host', function() { return '127.0.0.1'; });
+ *   add_filter('generatepress_child_vite_dev_port', function() { return 3001; });
+ *
+ * Option 2: Define constants in wp-config.php (takes precedence over filters)
+ *   define('VITE_DEV_SERVER_HOST', 'localhost');
+ *   define('VITE_DEV_SERVER_PORT', 3001);
  */
 
 // Dev server host

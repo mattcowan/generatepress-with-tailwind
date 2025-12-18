@@ -1,8 +1,52 @@
 <?php
 /**
  * Debug script to test environment detection
- * Access via: http://wplayground/wp-content/themes/generatepress_child/debug-env.php
+ *
+ * Location: wp-content/themes/generatepress_child/debug-env.php
+ * Access via: http://yourdomain.com/wp-content/themes/generatepress_child/debug-env.php
+ *
+ * SECURITY: This script is only available when WP_DEBUG is enabled and user is logged in as admin.
  */
+
+// Load WordPress - try multiple methods for robustness
+if (!defined('ABSPATH')) {
+    // Method 1: Standard WordPress theme path (works if file is in theme root)
+    // Expected path: wp-content/themes/generatepress_child/debug-env.php
+    $wp_load_path = dirname(dirname(dirname(__DIR__))) . '/wp-load.php';
+
+    // Method 2: If Method 1 fails, try traversing up from current directory
+    if (!file_exists($wp_load_path)) {
+        $wp_load_path = dirname(dirname(dirname(dirname(__FILE__)))) . '/wp-load.php';
+    }
+
+    // Method 3: Last resort - check if we're in a standard WordPress install
+    if (!file_exists($wp_load_path)) {
+        // Try going up directories until we find wp-load.php (max 10 levels)
+        $current_dir = __DIR__;
+        for ($i = 0; $i < 10; $i++) {
+            $current_dir = dirname($current_dir);
+            if (file_exists($current_dir . '/wp-load.php')) {
+                $wp_load_path = $current_dir . '/wp-load.php';
+                break;
+            }
+        }
+    }
+
+    if (!file_exists($wp_load_path)) {
+        die('Error: Unable to locate wp-load.php. Please ensure this file is in the correct theme directory.');
+    }
+
+    require_once $wp_load_path;
+}
+
+// Security check: Only allow access if WP_DEBUG is enabled and user is admin
+if (!defined('WP_DEBUG') || !WP_DEBUG) {
+    wp_die('Debug mode is disabled. Enable WP_DEBUG in wp-config.php to access this script.', 'Debug Access Denied', array('response' => 403));
+}
+
+if (!current_user_can('manage_options')) {
+    wp_die('You do not have permission to access this script.', 'Access Denied', array('response' => 403));
+}
 
 // Simulate WordPress environment
 $_SERVER['SERVER_NAME'] = $_SERVER['SERVER_NAME'] ?? 'wplayground';

@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import path from 'path';
 import removeConsole from 'vite-plugin-remove-console';
 
+// Vite passes `{ command, mode }` to this config function:
+// - command: "serve" (dev) or "build" (production bundle). We use this to gate console removal.
+// - mode: Vite mode string (e.g. "development", "production"). Currently unused, kept for future config.
 export default defineConfig(({ command, mode }) => ({
   plugins: [
     // Only remove console statements in production builds

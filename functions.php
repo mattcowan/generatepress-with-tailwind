@@ -36,7 +36,7 @@ add_filter( 'style_loader_tag', 'generatepress_child_filter_style_tag', 10, 4 );
  * @return string The resolved IP address, or the hostname if resolution failed.
  */
 function gp_child_cached_dns_lookup($hostname) {
-    $transient_key = 'gp_dns_' . preg_replace('/[^a-z0-9_]/i', '_', $hostname);
+    $transient_key = 'gp_child_dns_' . preg_replace('/[^a-z0-9_]/i', '_', $hostname);
     $cached_result = get_transient($transient_key);
 
     if ($cached_result !== false) {
@@ -95,14 +95,27 @@ function generatepress_child_is_dev_environment() {
     $http_host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field($_SERVER['HTTP_HOST']) : '';
 
     // Strip port from HTTP_HOST if present (e.g., "wplayground:8080" -> "wplayground")
-    // Only strip if not an IPv6 address (which is enclosed in square brackets, e.g., "[::1]:8080")
+    // For IPv6, require a well-formed bracketed literal (e.g., "[::1]:8080") and validate it.
     // Expected input: host[:port], where host is a domain, IPv4, or [IPv6]
-    if ($http_host && $http_host[0] === '[') {
-        // IPv6 address, possibly with port (e.g., "[::1]:8080")
-        $http_host_clean = preg_replace('/\]:\d+$/', ']', $http_host);
-    } else {
-        // IPv4 or domain, possibly with port (e.g., "localhost:8080")
-        $http_host_clean = preg_replace('/:\d+$/', '', $http_host);
+    $http_host_clean = $http_host;
+
+    if ($http_host) {
+        // Match bracketed IPv6 with optional port, e.g., "[::1]" or "[::1]:8080"
+        if (preg_match('/^\[(.+)\](?::\d+)?$/', $http_host, $matches)) {
+            $ipv6_candidate = $matches[1];
+
+            // Only treat as IPv6 if the inner value is a valid IPv6 address
+            if (filter_var($ipv6_candidate, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+                // Normalize to bracketed IPv6 without port
+                $http_host_clean = '[' . $ipv6_candidate . ']';
+            } else {
+                // Malformed bracketed host; fall back to generic port stripping
+                $http_host_clean = preg_replace('/:\d+$/', '', $http_host);
+            }
+        } else {
+            // IPv4 or domain, possibly with port (e.g., "localhost:8080")
+            $http_host_clean = preg_replace('/:\d+$/', '', $http_host);
+        }
     }
 
     // Check for localhost variants
@@ -153,4 +166,16 @@ if (generatepress_child_is_dev_environment()) {
     require_once get_stylesheet_directory() . '/functions/dev-assets.php';
 }
 
-delete_transient('gp_child_vite_dev_server_running');
+/**
+ * Clear the cached Vite dev server status when themes are switched.
+ *
+ * This ensures we don't delete the transient on every request, but still
+ * invalidate it when the theme lifecycle changes.
+ *
+ * @since 1.2.0
+ */
+function generatepress_child_clear_vite_dev_server_transient() {
+    delete_transient('gp_child_vite_dev_server_running');
+}
+add_action('switch_theme', 'generatepress_child_clear_vite_dev_server_transient');
+add_action('after_switch_theme', 'generatepress_child_clear_vite_dev_server_transient');

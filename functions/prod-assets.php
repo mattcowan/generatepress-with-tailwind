@@ -167,12 +167,11 @@ function generatepress_child_enqueue_assets() {
         $js_file = $manifest['src/js/main.js']['file'];
 
         // Validate path doesn't traverse and filename matches Vite format (name.hash.js)
-        // Hash is typically 8 alphanumeric characters (e.g., main.DtwKV1wl.js)
+        // Hash is exactly 8 base64url characters: A-Za-z0-9_- (e.g., main.DtwKV1wl.js or main.CSQ746O9.js)
         if (!str_contains($js_file, '..') &&
-            preg_match('/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]{8,}\.js$/', basename($js_file))) {
+            preg_match('/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]{8}\.js$/', basename($js_file))) {
             // Use 'strategy' parameter if WP >= 6.3.0, otherwise use wp_script_add_data for defer
-            global $wp_version;
-            if ( version_compare( $wp_version, '6.3.0', '>=' ) ) {
+            if ( version_compare( get_bloginfo( 'version' ), '6.3.0', '>=' ) ) {
                 wp_enqueue_script(
                     'generatepress-child-main',
                     $dist_uri . $js_file,
@@ -205,9 +204,9 @@ function generatepress_child_enqueue_assets() {
         $css_file = $manifest['src/css/main.css']['file'];
 
         // Validate path doesn't traverse and filename matches Vite format (name.hash.css)
-        // Hash is typically 8 alphanumeric characters (e.g., style.L98F1T-T.css)
+        // Hash is exactly 8 base64url characters: A-Za-z0-9_- (e.g., style.DX2Go6rB.css or style.L98F1T-T.css)
         if (!str_contains($css_file, '..') &&
-            preg_match('/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]{8,}\.css$/', basename($css_file))) {
+            preg_match('/^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]{8}\.css$/', basename($css_file))) {
             wp_enqueue_style(
                 'generatepress-child-main',
                 $dist_uri . $css_file,

@@ -52,7 +52,22 @@ function generatepress_child_is_vite_dev_server_running() {
 
     // Try to connect to dev server on each port in range
     $active_port = false;
-    set_error_handler(function () { /* ignore fsockopen warnings */ });
+    // Temporarily suppress fsockopen warnings; log them in WP_DEBUG mode for troubleshooting.
+    set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($host, $port_range) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log(sprintf(
+                '[Vite Dev Server Check] fsockopen warning (errno %d): %s in %s on line %d. Host: %s, Ports: %s',
+                $errno,
+                $errstr,
+                $errfile,
+                $errline,
+                $host,
+                implode(',', (array) $port_range)
+            ));
+        }
+        // Return true to indicate the error has been handled and prevent default PHP warning output.
+        return true;
+    });
 
     foreach ($port_range as $port) {
         $connection = fsockopen($host, $port, $errno, $errstr, 1);

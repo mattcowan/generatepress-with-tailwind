@@ -411,12 +411,12 @@ The theme automatically detects your environment using these checks (in order):
    - `localhost`, `127.0.0.1`, `::1`
    - TLDs: `.local`, `.test`, `.dev`, `.localhost`
    - Private IPs: `192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`
-   - **Hostname resolution**: Any hostname that resolves to `127.0.0.1` (via IPv4 lookup using `gethostbyname()`). Note: Hostnames that only resolve to IPv6 (`::1`) or if resolution fails/timeouts may not be detected.
+   - **Hostname resolution (IPv4)**: Any hostname that resolves to `127.0.0.1` (via IPv4 lookup using `gethostbyname()`). Direct access via the IPv6 localhost address `::1` is also detected, but custom hostnames that only resolve to IPv6 (`::1`) or where resolution fails/times out may not be detected.
 
 3. **Filter Hook**
    - `generatepress_child_is_dev_environment` filter
 
-**Custom Hostnames**: If you use `wplayground`, `mysite.local`, or any custom hostname in your hosts file that points to localhost, it will be automatically detected.
+**Custom Hostnames**: If you use `wplayground`, `mysite.local`, or any custom hostname in your hosts file that points to localhost (and it resolves to `127.0.0.1` or you access it directly via `::1`), it will be automatically detected.
 
 ### Manifest System
 
