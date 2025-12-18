@@ -17,18 +17,19 @@ if (!defined('ABSPATH')) {
 /**
  * Check if Vite dev server is running.
  *
- * Attempts to connect to localhost:3000 to detect if the Vite dev server is active.
- * Uses error suppression and caching to avoid performance impact.
+ * Attempts to connect to the configured dev server to detect if Vite is active.
+ * Checks multiple ports in the configured range if the primary port isn't responding.
+ * Uses caching to avoid performance impact.
  *
  * @since 1.0.0
- * @return bool True if dev server is running, false otherwise.
+ * @return bool|int True if dev server is running, false otherwise. Returns the active port number on success.
  */
 function generatepress_child_is_vite_dev_server_running() {
-    static $is_running = null;
+    static $result = null;
 
     // Cache result in static variable for this request
-    if (null !== $is_running) {
-        return $is_running;
+    if (null !== $result) {
+        return $result;
     }
 
     // Check transient cache (5 minute TTL)
@@ -36,31 +37,50 @@ function generatepress_child_is_vite_dev_server_running() {
     $cached = get_transient($cache_key);
 
     if (false !== $cached) {
-        $is_running = (bool) $cached;
-        return $is_running;
+        $result = ($cached === 'false') ? false : (int) $cached;
+        return $result;
     }
 
-    // Try to connect to dev server (suppress warnings temporarily)
+    // Get configured host and port range
+    $host = defined('VITE_DEV_SERVER_HOST') ? VITE_DEV_SERVER_HOST : 'localhost';
+    $port_range = defined('VITE_DEV_SERVER_PORT_RANGE') ? VITE_DEV_SERVER_PORT_RANGE : [3000];
+
+    // Ensure port range is an array
+    if (!is_array($port_range)) {
+        $port_range = [$port_range];
+    }
+
+    // Try to connect to dev server on each port in range
+    $active_port = false;
     $prev_error_handler = set_error_handler(function () { /* ignore fsockopen warnings */ });
-    $connection = fsockopen('localhost', 3000, $errno, $errstr, 1);
+
+    foreach ($port_range as $port) {
+        $connection = @fsockopen($host, $port, $errno, $errstr, 1);
+
+        if ($connection) {
+            fclose($connection);
+            $active_port = $port;
+            break;
+        }
+    }
+
     if ($prev_error_handler !== null) {
         set_error_handler($prev_error_handler);
     } else {
         restore_error_handler();
     }
 
-    if ($connection) {
-        fclose($connection);
-        $is_running = true;
-        // Cache positive result for 5 minutes
-        set_transient($cache_key, 1, 5 * MINUTE_IN_SECONDS);
+    if ($active_port) {
+        $result = $active_port;
+        // Cache positive result for 5 minutes (store port number)
+        set_transient($cache_key, $active_port, 5 * MINUTE_IN_SECONDS);
     } else {
-        $is_running = false;
+        $result = false;
         // Cache negative result for 1 minute (shorter to detect when server starts)
-        set_transient($cache_key, 0, MINUTE_IN_SECONDS);
+        set_transient($cache_key, 'false', MINUTE_IN_SECONDS);
     }
 
-    return $is_running;
+    return $result;
 }
 
 /**
@@ -73,8 +93,10 @@ function generatepress_child_is_vite_dev_server_running() {
  * @return void
  */
 function generatepress_child_enqueue_dev_assets() {
-    // Check if dev server is running
-    if (!generatepress_child_is_vite_dev_server_running()) {
+    // Check if dev server is running (returns port number or false)
+    $active_port = generatepress_child_is_vite_dev_server_running();
+
+    if (!$active_port) {
         // Dev server not running, remove this hook and let production function handle it
         remove_action('wp_enqueue_scripts', 'generatepress_child_enqueue_dev_assets', 10);
         return;
@@ -83,7 +105,10 @@ function generatepress_child_enqueue_dev_assets() {
     // Remove production hook since we're using dev server
     remove_action('wp_enqueue_scripts', 'generatepress_child_enqueue_assets', 20);
 
-    $dev_server_url = 'http://localhost:3000';
+    // Get dev server URL using the detected port
+    $dev_server_url = function_exists('generatepress_child_get_vite_url')
+        ? generatepress_child_get_vite_url($active_port)
+        : 'http://localhost:' . $active_port;
 
     // Enqueue Vite client for HMR
     wp_enqueue_script(
@@ -149,13 +174,20 @@ function generatepress_child_dev_mode_notice() {
         return;
     }
 
-    // Check if dev server is running
-    if (!generatepress_child_is_vite_dev_server_running()) {
+    // Check if dev server is running (returns port number or false)
+    $active_port = generatepress_child_is_vite_dev_server_running();
+
+    if (!$active_port) {
         return;
     }
 
+    // Get the full dev server URL for display
+    $dev_server_url = function_exists('generatepress_child_get_vite_url')
+        ? generatepress_child_get_vite_url($active_port)
+        : 'http://localhost:' . $active_port;
+
     echo '<div class="notice notice-info is-dismissible">';
-    echo '<p><strong>Development Mode:</strong> Vite dev server detected on port 3000. Hot Module Replacement (HMR) is active.</p>';
+    echo '<p><strong>Development Mode:</strong> Vite dev server detected at <code>' . esc_html($dev_server_url) . '</code>. Hot Module Replacement (HMR) is active.</p>';
     echo '</div>';
 }
 add_action('admin_notices', 'generatepress_child_dev_mode_notice');

@@ -27,6 +27,34 @@ function generatepress_child_filter_style_tag( $html, $handle, $href, $media ) {
 add_filter( 'style_loader_tag', 'generatepress_child_filter_style_tag', 10, 4 );
 
 /**
+ * Cached DNS resolution helper to avoid repeated gethostbyname() calls.
+ *
+ * Uses WordPress transients to cache DNS lookup results for 1 hour.
+ * This prevents performance issues from DNS queries on every request.
+ *
+ * @param string $hostname The hostname to resolve.
+ * @return string The resolved IP address, or the hostname if resolution failed.
+ */
+function gp_child_cached_dns_lookup($hostname) {
+    $transient_key = 'gp_dns_' . preg_replace('/[^a-z0-9_]/i', '_', $hostname);
+    $cached_result = get_transient($transient_key);
+
+    if ($cached_result !== false) {
+        return $cached_result;
+    }
+
+    $resolved_ip = gethostbyname($hostname);
+    set_transient($transient_key, $resolved_ip, HOUR_IN_SECONDS);
+
+    return $resolved_ip;
+}
+
+/**
+ * Load theme configuration (load first, before other functions)
+ */
+require_once get_stylesheet_directory() . '/config.php';
+
+/**
  * Load production asset functions (always loaded)
  */
 require_once get_stylesheet_directory() . '/functions/prod-assets.php';
@@ -93,7 +121,7 @@ function generatepress_child_is_dev_environment() {
     // Check if hostname resolves to localhost (handles custom hosts file entries)
     // gethostbyname() returns the hostname unchanged if resolution fails (safe fallback)
     if ($server_name && $server_name !== '::1') {
-        $resolved_ip = gethostbyname($server_name);
+        $resolved_ip = gp_child_cached_dns_lookup($server_name);
         // If resolution succeeded and points to localhost
         if ($resolved_ip !== $server_name && $resolved_ip === '127.0.0.1') {
             return true;
@@ -101,7 +129,7 @@ function generatepress_child_is_dev_environment() {
     }
 
     if ($http_host_clean && $http_host_clean !== $server_name && $http_host_clean !== '::1') {
-        $resolved_ip = gethostbyname($http_host_clean);
+        $resolved_ip = gp_child_cached_dns_lookup($http_host_clean);
         // If resolution succeeded and points to localhost
         if ($resolved_ip !== $http_host_clean && $resolved_ip === '127.0.0.1') {
             return true;

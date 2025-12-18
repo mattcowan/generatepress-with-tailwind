@@ -7,6 +7,7 @@ A modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite buil
 - [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
+- [Configuration](#configuration)
 - [Development](#development)
   - [Commands](#commands)
   - [Development Workflow](#development-workflow)
@@ -87,6 +88,93 @@ After activation, check your site's page source. You should see references to th
 <script src='.../dist/main.[hash].js'></script>
 ```
 
+## Configuration
+
+### Development Server Configuration
+
+The theme uses a centralized configuration file for the Vite dev server settings. This allows easy customization for different development environments.
+
+#### Default Settings
+
+By default, the theme looks for the Vite dev server at:
+- **Host**: `localhost`
+- **Port**: `3000` (with automatic fallback to ports 3001-3005)
+- **Protocol**: `http`
+
+The theme automatically detects which port Vite is actually using, so you don't need to update the configuration if Vite uses an alternate port.
+
+#### Customization Options
+
+**Option 1: Edit config.php (Recommended for team projects)**
+
+Edit `config.php` to change the defaults for all developers:
+
+```php
+// Change default host (e.g., for Docker environments)
+define('VITE_DEV_SERVER_HOST', '0.0.0.0');
+
+// Change default port
+define('VITE_DEV_SERVER_PORT', 5173);
+
+// Change port range for auto-detection
+define('VITE_DEV_SERVER_PORT_RANGE', [5173, 5174, 5175]);
+```
+
+**Option 2: Use wp-config.php (Recommended for individual developers)**
+
+Add constants to your `wp-config.php` file (not tracked in version control):
+
+```php
+// Override dev server settings
+define('VITE_DEV_SERVER_HOST', 'mysite.local');
+define('VITE_DEV_SERVER_PORT', 3001);
+```
+
+**Option 3: Use WordPress Filters (Advanced)**
+
+Add filters in your `functions.php` or a custom plugin:
+
+```php
+// Override dev server host
+add_filter('generatepress_child_vite_dev_host', function() {
+    return '127.0.0.1';
+});
+
+// Override dev server port
+add_filter('generatepress_child_vite_dev_port', function() {
+    return 3001;
+});
+
+// Override entire dev server URL
+add_filter('generatepress_child_vite_dev_url', function($url, $port) {
+    return "https://mysite.local:{$port}";
+}, 10, 2);
+```
+
+#### Common Scenarios
+
+**MAMP (Mac) - Custom Port**
+```php
+// In wp-config.php
+define('VITE_DEV_SERVER_PORT', 8888);
+```
+
+**Docker / WSL - Different Host**
+```php
+// In wp-config.php
+define('VITE_DEV_SERVER_HOST', 'host.docker.internal');
+```
+
+**Local by Flywheel - Custom Domain**
+```php
+// In wp-config.php
+define('VITE_DEV_SERVER_HOST', 'mysite.local');
+```
+
+**Vite Using Alternate Port**
+
+If Vite reports it's using port 3001 (because 3000 is busy), the theme will automatically detect and use 3001. No configuration change needed!
+
 ## Development
 
 ### Commands
@@ -124,7 +212,7 @@ Experience instant browser updates without page refreshes:
    npm run build
    ```
 
-**How it works:** When `npm run dev` is running, WordPress automatically detects the Vite dev server on port 3000 and loads assets from it. If the dev server isn't running, WordPress gracefully falls back to loading the built assets from the `dist/` folder.
+**How it works:** When `npm run dev` is running, WordPress automatically detects the Vite dev server (on the configured port or any port in the fallback range) and loads assets from it. If the dev server isn't running, WordPress gracefully falls back to loading the built assets from the `dist/` folder.
 
 #### Option 2: Build Watch Mode
 
@@ -154,6 +242,8 @@ generatepress_child/
 ├── functions/                # PHP function modules
 │   ├── prod-assets.php      # Production asset loading (manifest-based)
 │   └── dev-assets.php       # Development HMR and dev server detection
+│
+├── config.php                # Theme configuration (dev server settings, etc.)
 │
 ├── src/                      # Source files
 │   ├── css/
@@ -451,10 +541,10 @@ add_action('init', 'my_custom_post_type');
 **Problem**: HMR not working / changes not appearing instantly
 
 **Solution**:
-1. Check if dev server is running: You should see "Vite dev server detected" in WordPress admin
+1. Check if dev server is running: You should see "Vite dev server detected at http://localhost:3000" in WordPress admin
 2. Check the dev server output for errors
-3. Verify port 3000 isn't blocked by firewall
-4. If port 3000 is busy, Vite will use the next available port - update `functions/dev-assets.php` to match
+3. Verify the port isn't blocked by firewall
+4. The theme automatically detects ports 3000-3005. If Vite uses a different port, see [Configuration](#configuration) section
 
 **Fallback**: If HMR isn't working, the theme automatically falls back to using built assets from `dist/`. Use `npm run watch` instead for auto-rebuilding.
 
@@ -534,7 +624,7 @@ A: Yes! The theme detects local development environments automatically (localhos
 A: No. The dev features only activate on localhost/development environments. Your production site will always use the optimized built assets from `dist/`, even if someone runs the dev server.
 
 **Q: What if port 3000 is already in use?**
-A: Vite will automatically try the next available port (3001, 3002, etc). However, WordPress looks for port 3000 by default. Either free up port 3000 or update `functions/dev-assets.php` to match the port Vite chose.
+A: Vite will automatically try the next available port (3001, 3002, etc). The theme automatically detects ports 3000-3005, so no configuration change is needed. If Vite uses a port outside this range, see the [Configuration](#configuration) section.
 
 ### Tailwind CSS Questions
 
@@ -613,6 +703,16 @@ For issues and questions:
 - **Vite Docs**: https://vitejs.dev/
 
 ## Changelog
+
+### 1.2.0
+- ✨ Added centralized `config.php` for dev server configuration
+- ✨ Added smart port detection with automatic fallback (ports 3000-3005)
+- ✨ Added multiple configuration methods (config.php, wp-config.php, filters)
+- ✨ Dev server URL now displays actual detected port in admin notice
+- 📝 Added comprehensive Configuration section to documentation
+- 🔧 Removed hardcoded dev server URLs
+- 🔧 Enhanced cross-platform compatibility (Windows/Mac/Linux)
+- 🔧 Improved support for different dev environments (WAMP, MAMP, Local, Docker, etc.)
 
 ### 1.1.0
 - ✨ Added Hot Module Replacement (HMR) support with `npm run dev`
