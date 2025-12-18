@@ -1,6 +1,6 @@
 {
   "name": "generatepress-child-tailwind",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "Modern WordPress child theme for GeneratePress with Tailwind CSS v4, Vite build tooling, and custom block support",
   "author": "matthewneilcowan",
@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/yourusername/generatepress-child-tailwind#readme",
   "scripts": {
+    "dev": "vite",
     "watch": "vite build --watch",
     "build": "vite build",
     "verify": "node verify-build.js",
