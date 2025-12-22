@@ -77,6 +77,8 @@ function generatepress_child_sanitize_svg_upload( $file ) {
 
 	if ( false === $svg_content ) {
 		$file['error'] = __( 'Unable to read SVG file.', 'generatepress_child' );
+		// Delete temp file on read failure to prevent processing unsanitized content
+		@unlink( $file['tmp_name'] );
 		return $file;
 	}
 
@@ -86,6 +88,8 @@ function generatepress_child_sanitize_svg_upload( $file ) {
 
 	if ( false === $sanitized_svg ) {
 		$file['error'] = __( 'Invalid or potentially malicious SVG file.', 'generatepress_child' );
+		// Delete temp file on sanitization failure to prevent processing malicious content
+		@unlink( $file['tmp_name'] );
 		return $file;
 	}
 
@@ -94,6 +98,8 @@ function generatepress_child_sanitize_svg_upload( $file ) {
 
 	if ( false === $bytes_written ) {
 		$file['error'] = __( 'Unable to save sanitized SVG file.', 'generatepress_child' );
+		// Delete temp file on write failure to prevent processing potentially corrupt file
+		@unlink( $file['tmp_name'] );
 		return $file;
 	}
 
