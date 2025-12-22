@@ -204,3 +204,18 @@ function generatepress_child_dev_mode_notice() {
     echo '</div>';
 }
 add_action('admin_notices', 'generatepress_child_dev_mode_notice');
+
+/**
+ * Clear the cached Vite dev server status when themes are switched.
+ *
+ * This ensures we don't delete the transient on every request, but still
+ * invalidate it when the theme lifecycle changes.
+ *
+ * @since 1.2.0
+ * @return void
+ */
+function generatepress_child_clear_vite_dev_server_transient() {
+    delete_transient('gp_child_vite_dev_server_running');
+}
+add_action('switch_theme', 'generatepress_child_clear_vite_dev_server_transient');
+add_action('after_switch_theme', 'generatepress_child_clear_vite_dev_server_transient');

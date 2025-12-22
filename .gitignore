@@ -5,6 +5,7 @@ CLAUDE.md
 # Dependencies
 node_modules/
 package-lock.json
+vendor/
 
 # Build output
 dist/
