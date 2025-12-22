@@ -49,6 +49,8 @@ if (generatepress_child_is_dev_environment()) {
 }
 
 /**
- * Load SVG support
+ * Load SVG support (only if the required sanitizer library is available)
  */
-require_once get_stylesheet_directory() . '/functions/svg-support.php';
+if ( class_exists( 'enshrined\svgSanitize\Sanitizer' ) ) {
+	require_once get_stylesheet_directory() . '/functions/svg-support.php';
+}

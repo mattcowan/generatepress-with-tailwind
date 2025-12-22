@@ -62,6 +62,7 @@ add_filter( 'wp_check_filetype_and_ext', 'generatepress_child_check_svg_filetype
  * Sanitize SVG uploads
  *
  * Uses the enshrined/svg-sanitize library for robust SVG sanitization.
+ * Restricted to users with unfiltered_html capability by default (filterable).
  *
  * @param array $file The uploaded file array.
  * @return array The file array.
@@ -69,6 +70,23 @@ add_filter( 'wp_check_filetype_and_ext', 'generatepress_child_check_svg_filetype
 function generatepress_child_sanitize_svg_upload( $file ) {
 	// Only process SVG files
 	if ( ! isset( $file['type'] ) || 0 !== strpos( $file['type'], 'image/svg' ) ) {
+		return $file;
+	}
+
+	// Restrict SVG uploads to users with specific capability (default: unfiltered_html)
+	// Filter allows customization: add_filter('generatepress_child_svg_upload_capability', function() { return 'edit_posts'; });
+	$required_capability = apply_filters( 'generatepress_child_svg_upload_capability', 'unfiltered_html' );
+
+	if ( ! current_user_can( $required_capability ) ) {
+		$file['error'] = __( 'You do not have permission to upload SVG files.', 'generatepress_child' );
+		@unlink( $file['tmp_name'] );
+		return $file;
+	}
+
+	// Verify sanitizer library is available
+	if ( ! class_exists( 'enshrined\svgSanitize\Sanitizer' ) ) {
+		$file['error'] = __( 'SVG sanitization library is not available. Please contact the site administrator.', 'generatepress_child' );
+		@unlink( $file['tmp_name'] );
 		return $file;
 	}
 
