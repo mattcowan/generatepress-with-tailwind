@@ -110,9 +110,9 @@ add_filter( 'wp_handle_upload_prefilter', 'generatepress_child_sanitize_svg_uplo
 /**
  * Display SVG thumbnails in media library
  *
- * @param string $response The response data.
+ * @param array  $response   The response data.
  * @param object $attachment The attachment object.
- * @return string Modified response data.
+ * @return array Modified response data.
  */
 function generatepress_child_svg_media_thumbnails( $response, $attachment ) {
 	if ( 'image/svg+xml' === $response['mime'] ) {
