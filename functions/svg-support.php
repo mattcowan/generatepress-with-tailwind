@@ -96,7 +96,7 @@ function generatepress_child_sanitize_svg_upload( $file ) {
 	// Write sanitized content back
 	$bytes_written = file_put_contents( $file['tmp_name'], $sanitized_svg );
 
-	if ( false === $bytes_written ) {
+	if ( false === $bytes_written || 0 === $bytes_written ) {
 		$file['error'] = __( 'Unable to save sanitized SVG file.', 'generatepress_child' );
 		// Delete temp file on write failure to prevent processing potentially corrupt file
 		@unlink( $file['tmp_name'] );
