@@ -96,7 +96,7 @@ function generatepress_child_is_dev_environment() {
 
     // Check for localhost variants
     if (in_array($server_name, ['localhost', '127.0.0.1', '::1'], true) ||
-        in_array($http_host_clean, ['localhost', '127.0.0.1', '::1'], true)) {
+        in_array($http_host_clean, ['localhost', '127.0.0.1', '[::1]'], true)) {
         return true;
     }
 
@@ -125,7 +125,7 @@ function generatepress_child_is_dev_environment() {
         }
     }
 
-    if ($http_host_clean && $http_host_clean !== $server_name && !str_contains($http_host_clean, ':')) {
+    if ($http_host_clean && $http_host_clean !== $server_name && !str_contains($http_host_clean, ':') && !str_starts_with($http_host_clean, '[')) {
         $resolved_ip = gp_child_cached_dns_lookup($http_host_clean);
         // If resolution succeeded and points to localhost
         if ($resolved_ip !== $http_host_clean && $resolved_ip === '127.0.0.1') {
