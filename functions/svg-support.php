@@ -68,9 +68,20 @@ add_filter( 'wp_check_filetype_and_ext', 'generatepress_child_check_svg_filetype
  * @return array The file array.
  */
 function generatepress_child_sanitize_svg_upload( $file ) {
-	// Only process SVG files
-	if ( ! isset( $file['type'] ) || 0 !== strpos( $file['type'], 'image/svg' ) ) {
+	// Only process SVG files based on trusted server-side filetype detection
+	if ( empty( $file['name'] ) ) {
 		return $file;
+	}
+
+	$checked_filetype = wp_check_filetype( $file['name'], null );
+
+	if ( empty( $checked_filetype['ext'] ) || 'svg' !== strtolower( $checked_filetype['ext'] ) ) {
+		return $file;
+	}
+
+	// Normalize MIME type for SVG files if missing or incorrect
+	if ( empty( $file['type'] ) || 0 !== strpos( $file['type'], 'image/svg' ) ) {
+		$file['type'] = 'image/svg+xml';
 	}
 
 	// Restrict SVG uploads to users with specific capability (default: unfiltered_html)
@@ -79,14 +90,14 @@ function generatepress_child_sanitize_svg_upload( $file ) {
 
 	if ( ! current_user_can( $required_capability ) ) {
 		$file['error'] = __( 'You do not have permission to upload SVG files.', 'generatepress_child' );
-		@unlink( $file['tmp_name'] );
+		unlink( $file['tmp_name'] );
 		return $file;
 	}
 
 	// Verify sanitizer library is available
 	if ( ! class_exists( 'enshrined\svgSanitize\Sanitizer' ) ) {
 		$file['error'] = __( 'SVG sanitization library is not available. Please contact the site administrator.', 'generatepress_child' );
-		@unlink( $file['tmp_name'] );
+		unlink( $file['tmp_name'] );
 		return $file;
 	}
 
@@ -96,7 +107,7 @@ function generatepress_child_sanitize_svg_upload( $file ) {
 	if ( false === $svg_content ) {
 		$file['error'] = __( 'Unable to read SVG file.', 'generatepress_child' );
 		// Delete temp file on read failure to prevent processing unsanitized content
-		@unlink( $file['tmp_name'] );
+		unlink( $file['tmp_name'] );
 		return $file;
 	}
 
@@ -107,7 +118,7 @@ function generatepress_child_sanitize_svg_upload( $file ) {
 	if ( false === $sanitized_svg ) {
 		$file['error'] = __( 'Invalid or potentially malicious SVG file.', 'generatepress_child' );
 		// Delete temp file on sanitization failure to prevent processing malicious content
-		@unlink( $file['tmp_name'] );
+		unlink( $file['tmp_name'] );
 		return $file;
 	}
 
@@ -117,7 +128,7 @@ function generatepress_child_sanitize_svg_upload( $file ) {
 	if ( false === $bytes_written || 0 === $bytes_written ) {
 		$file['error'] = __( 'Unable to save sanitized SVG file.', 'generatepress_child' );
 		// Delete temp file on write failure to prevent processing potentially corrupt file
-		@unlink( $file['tmp_name'] );
+		unlink( $file['tmp_name'] );
 		return $file;
 	}
 

@@ -3,7 +3,7 @@
     "description": "GeneratePress Child Theme",
     "type": "wordpress-theme",
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "enshrined/svg-sanitize": "^0.20"
     },
     "config": {
