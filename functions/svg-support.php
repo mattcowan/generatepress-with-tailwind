@@ -115,7 +115,7 @@ add_filter( 'wp_handle_upload_prefilter', 'generatepress_child_sanitize_svg_uplo
  * @return array Modified response data.
  */
 function generatepress_child_svg_media_thumbnails( $response, $attachment ) {
-	if ( 'image/svg+xml' === $response['mime'] ) {
+	if ( isset( $response['mime'] ) && 'image/svg+xml' === $response['mime'] ) {
 		$response['image'] = array(
 			'src' => $response['url'],
 		);
