@@ -49,6 +49,6 @@ if (generatepress_child_is_dev_environment()) {
 }
 
 /**
- * Load svg support
+ * Load SVG support
  */
 require_once get_stylesheet_directory() . '/functions/svg-support.php';
