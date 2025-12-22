@@ -7,6 +7,13 @@
  */
 
 /**
+ * Load Composer autoloader
+ */
+if ( file_exists( get_stylesheet_directory() . '/vendor/autoload.php' ) ) {
+	require_once get_stylesheet_directory() . '/vendor/autoload.php';
+}
+
+/**
  * Load theme configuration (load first, before other functions)
  */
 require_once get_stylesheet_directory() . '/config.php';
