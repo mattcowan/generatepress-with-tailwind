@@ -47,20 +47,3 @@ require_once get_stylesheet_directory() . '/functions/prod-assets.php';
 if (generatepress_child_is_dev_environment()) {
     require_once get_stylesheet_directory() . '/functions/dev-assets.php';
 }
-
-/**
- * Load SVG support (only if the required sanitizer library is available)
- */
-if ( class_exists( 'enshrined\svgSanitize\Sanitizer' ) ) {
-	require_once get_stylesheet_directory() . '/functions/svg-support.php';
-} else {
-	// Show admin notice if vendor directory is missing
-	add_action( 'admin_notices', function() {
-		if ( ! file_exists( get_stylesheet_directory() . '/vendor/autoload.php' ) ) {
-			echo '<div class="notice notice-warning is-dismissible"><p>';
-			echo '<strong>GeneratePress Child Theme:</strong> SVG upload support is disabled. ';
-			echo 'Run <code>composer install</code> in the theme directory to enable it.';
-			echo '</p></div>';
-		}
-	} );
-}
