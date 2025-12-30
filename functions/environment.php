@@ -17,8 +17,9 @@ if (!defined('ABSPATH')) {
  * Cached DNS resolution helper to avoid repeated gethostbyname() calls.
  *
  * Uses WordPress transients to cache DNS lookup results. Only caches results
- * that resolve to local/development IP addresses to prevent caching of
- * potentially malicious DNS responses.
+ * that resolve to local/development IP addresses since this function is used
+ * exclusively for development environment detection. Caching only relevant IPs
+ * improves performance while avoiding unnecessary transient storage.
  *
  * @param string $hostname The hostname to resolve.
  * @return string The resolved IP address, or the hostname if resolution failed.
@@ -33,8 +34,9 @@ function generatepress_child_cached_dns_lookup($hostname) {
 
     $resolved_ip = gethostbyname($hostname);
 
-    // Only cache if resolution succeeded and resulted in a local/development IP
-    // This prevents caching potentially malicious DNS responses
+    // Only cache if resolution succeeded and resulted in a local/development IP.
+    // Since this function is only used for dev environment detection, we only
+    // cache the IPs we actually care about (localhost and private network ranges).
     if ($resolved_ip !== $hostname &&
         ($resolved_ip === '127.0.0.1' ||
          preg_match('/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/i', $resolved_ip))) {
@@ -105,7 +107,7 @@ function generatepress_child_is_dev_environment() {
 
     // Check for localhost variants
     if (in_array($server_name, ['localhost', '127.0.0.1', '::1'], true) ||
-        in_array($http_host_clean, ['localhost', '127.0.0.1', '[::1]'], true)) {
+        in_array($http_host_clean, ['localhost', '127.0.0.1', '[::1]', '::1'], true)) {
         return true;
     }
 

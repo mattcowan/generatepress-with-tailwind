@@ -45,5 +45,5 @@ require_once get_stylesheet_directory() . '/functions/prod-assets.php';
  * They are excluded in production for performance and security.
  */
 if (generatepress_child_is_dev_environment()) {
-    require_once get_stylesheet_directory() . '/functions/dev-assets.php';
+	require_once get_stylesheet_directory() . '/functions/dev-assets.php';
 }
