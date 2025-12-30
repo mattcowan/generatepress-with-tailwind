@@ -1,0 +1,12 @@
+{
+    "name": "generatepress/child-theme",
+    "description": "GeneratePress Child Theme",
+    "type": "wordpress-theme",
+    "require": {
+        "php": ">=8.0"
+    },
+    "config": {
+        "vendor-dir": "vendor",
+        "optimize-autoloader": true
+    }
+}
